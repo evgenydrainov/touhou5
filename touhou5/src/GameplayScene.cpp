@@ -43,16 +43,24 @@ namespace th
 
 				Boss& b = bosses.emplace_back(id, x, y, radius);
 
-				//const char* name = desc["Name"];
-				//printf("%s\n", name);
+				if (sol::optional<const char*> name = desc["Name"]) {
 
-				try {
-					int v = desc["V"];
-					printf("%d\n", v);
+				} else {
+					printf("expected boss[\"Name\"] to be string got %s\n", lua_typename(lua, (int)desc["Name"].get_type()));
 				}
-				catch (...) {
 
+				if (sol::optional<sol::table> phases = desc["Phases"]) {
+					int i = 1;
+					while (sol::optional<sol::table> phase = phases.value()[i]) {
+						printf("p %d\n", i);
+						i++;
+						
+					}
+				} else {
+					printf("expected boss[\"Phases\"] to be table got %s\n", lua_typename(lua, (int)desc["Phases"].get_type()));
 				}
+
+				//sol::optional<sol::nested<std::vector<int>>> a = desc["Phases"];
 
 				return id;
 			};
@@ -148,11 +156,9 @@ namespace th
 		while (fixed_timer >= 1.0f) {
 			if (co.runnable()) {
 				sol::protected_function_result pres = co();
-				if (pres.valid()) {
-
-				} else {
+				if (!pres.valid()) {
 					sol::error err = pres;
-					printf("%s\n", err.what());
+					printf("pres invalid: %s\n", err.what());
 				}
 			}
 

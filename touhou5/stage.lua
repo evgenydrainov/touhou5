@@ -10,14 +10,15 @@ local Nonspell1 = {
 }
 
 local Boss = {
-	Name = 'Name',
+	--Name = 'Name',
 	Phases = {Nonspell1},
 	Healthbars = {{1}},
-	V = ''
 }
 
 local Stage = {
 	Script = function(id)
+		--a()
+		
 		print('hi')
 		
 		th.wait(10)
