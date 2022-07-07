@@ -10,7 +10,7 @@ local Nonspell1 = {
 }
 
 local Boss = {
-	--Name = 'Name',
+	Name = 'Name',
 	Phases = {Nonspell1},
 	Healthbars = {{1}},
 }

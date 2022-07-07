@@ -85,11 +85,13 @@ namespace th
 			t.setString(fmt::format(
 				"{:.2f}fps\n"
 				"update {:.2f}ms\n"
-				"render {:.2f}ms\n",
+				"render {:.2f}ms",
 				mean_fps,
 				update_took,
 				render_took
 			));
+			t.setPosition(GAME_W, GAME_H);
+			AlignText(t, HAlign::Right, VAlign::Bottom);
 			game_surf.draw(t);
 		}
 		game_surf.display();

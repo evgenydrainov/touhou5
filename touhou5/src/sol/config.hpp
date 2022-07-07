@@ -18,8 +18,6 @@ the build system, or the command line options of your compiler.
 
 */
 
-#define SOL_NO_EXCEPTIONS 1
-
 #ifdef _DEBUG
 #define SOL_ALL_SAFETIES_ON 1
 #define SOL_PRINT_ERRORS 1

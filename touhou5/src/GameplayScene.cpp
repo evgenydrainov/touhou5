@@ -40,28 +40,17 @@ namespace th
 			lua["CreateBoss"] = [this](sol::table desc, float x, float y, float radius) -> instance_id
 			{
 				instance_id id = next_id++;
-
 				Boss& b = bosses.emplace_back(id, x, y, radius);
-
-				if (sol::optional<const char*> name = desc["Name"]) {
-
-				} else {
-					printf("expected boss[\"Name\"] to be string got %s\n", lua_typename(lua, (int)desc["Name"].get_type()));
+				b.name = desc["Name"];
+				sol::nested<std::vector<sol::table>> phases = desc["Phases"];
+				for (const sol::table& phase : phases.value()) {
+					sol::coroutine script = phase["Script"];
+					float time = phase["Time"];
+					float hp = phase["HP"];
+					b.phases.emplace_back(sol::coroutine(lua, script), time, hp);
 				}
-
-				if (sol::optional<sol::table> phases = desc["Phases"]) {
-					int i = 1;
-					while (sol::optional<sol::table> phase = phases.value()[i]) {
-						printf("p %d\n", i);
-						i++;
-						
-					}
-				} else {
-					printf("expected boss[\"Phases\"] to be table got %s\n", lua_typename(lua, (int)desc["Phases"].get_type()));
-				}
-
-				//sol::optional<sol::nested<std::vector<int>>> a = desc["Phases"];
-
+				sol::nested<std::vector<std::vector<int>>> healthbars = desc["Healthbars"];
+				b.healthbars = healthbars.value();
 				return id;
 			};
 
@@ -83,21 +72,13 @@ namespace th
 			lua["BulletGetRadius"] = [this](instance_id id) { if (Bullet* b = FindBullet(id)) return b->radius; else return 0.0f; };
 			lua["BulletSetRadius"] = [this](instance_id id, float radius) { if (Bullet* b = FindBullet(id)) b->radius = radius; };
 
-			sol::protected_function_result pres = lua.safe_script_file("stage.lua");
-			if (pres.valid()) {
-				if (sol::optional<sol::table> res = pres) {
-					if (sol::optional<sol::coroutine> script = res.value()["Script"]) {
-						co_runner = sol::thread::create(lua);
-						co = sol::coroutine(co_runner.thread_state(), script.value());
-					} else {
-						printf("expected result.Script to be function got %s\n", lua_typename(lua, (int)res.value()["Script"].get_type()));
-					}
-				} else {
-					printf("expected result to be table got %s\n", lua_typename(lua, (int)pres.get_type()));
-				}
-			} else {
-				sol::error err = pres;
-				printf("%s\n", err.what());
+			try {
+				sol::table res = lua.unsafe_script_file("stage.lua");
+				co_runner = sol::thread::create(lua);
+				sol::coroutine script = res["Script"];
+				co = sol::coroutine(co_runner.thread_state(), script);
+			} catch (const sol::error& err) {
+				Error(err.what());
 			}
 		}
 	}
@@ -138,13 +119,17 @@ namespace th
 			b.y += cpml::lengthdir_y(b.spd, b.dir) * delta;
 		}
 
-		//for (Enemy& e : enemies) {
-		//	
-		//}
-
-		//for (Boss& b : bosses) {
-		//
-		//}
+		for (auto b = bosses.begin(); b != bosses.end();) {
+			if (b->timer > 0.0f) {
+				b->timer -= delta;
+				if (b->timer < 0.0f) {
+					b->phase_index++;
+					if (b->phase_index < b->phases.size()) {
+						//
+					}
+				}
+			}
+		}
 
 		for (Powerup& p : powerups) {
 			p.vsp += p.grv * delta;
@@ -155,10 +140,14 @@ namespace th
 		fixed_timer += delta;
 		while (fixed_timer >= 1.0f) {
 			if (co.runnable()) {
-				sol::protected_function_result pres = co();
-				if (!pres.valid()) {
-					sol::error err = pres;
-					printf("pres invalid: %s\n", err.what());
+				try {
+					sol::protected_function_result pres = co();
+					if (!pres.valid()) {
+						sol::error err = pres;
+						Error(err.what());
+					}
+				} catch (const sol::error& err) {
+					Error(err.what());
 				}
 			}
 
@@ -226,7 +215,21 @@ namespace th
 			));
 			t.setPosition(PLAY_AREA_X + PLAY_AREA_W + 16, PLAY_AREA_Y + 32);
 			target.draw(t);
+
+			if (error) {
+				static sf::Text t;
+				t.setFont(game.font);
+				t.setCharacterSize(16);
+				t.setString(err_what);
+				target.draw(t);
+			}
 		}
+	}
+
+	void GameplayScene::Error(std::string what)
+	{
+		error = true;
+		err_what = what;
 	}
 
 	Bullet* GameplayScene::FindBullet(instance_id id)

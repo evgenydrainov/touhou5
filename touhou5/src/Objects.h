@@ -1,4 +1,5 @@
 #pragma once
+#include <sol/sol.hpp>
 
 namespace th
 {
@@ -38,12 +39,24 @@ namespace th
 		float radius;
 	};
 
+	struct BossPhase
+	{
+		sol::coroutine script;
+		float time;
+		float hp;
+	};
+
 	struct Boss
 	{
 		instance_id id;
 		float x;
 		float y;
 		float radius;
+		std::string name;
+		std::vector<BossPhase> phases;
+		size_t phase_index;
+		std::vector<std::vector<int>> healthbars;
+		float timer;
 	};
 
 	struct Powerup
