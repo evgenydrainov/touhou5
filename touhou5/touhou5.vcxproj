@@ -176,7 +176,7 @@
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\GameplayScene.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
-    <ClCompile Include="src\lib\format.cc" />
+    <ClCompile Include="libsrc\format.cc" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
