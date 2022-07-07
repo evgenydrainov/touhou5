@@ -2,6 +2,7 @@
 
 #include "GameplayScene.h"
 
+#include "misc.h"
 #include <fmt/format.h>
 
 namespace th

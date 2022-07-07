@@ -56,5 +56,8 @@
     <ClInclude Include="src\cpml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
