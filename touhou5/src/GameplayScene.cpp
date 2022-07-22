@@ -11,8 +11,7 @@ namespace th
 	void GameplayScene::Init()
 	{
 		texReimu.loadFromFile("reimu.png");
-		texReimuCard = std::make_shared<sf::Texture>();
-		texReimuCard->loadFromFile("reimucard.png");
+		texReimuCard.loadFromFile("reimucard.png");
 		texBg.loadFromFile("bg.png");
 		texHitbox.loadFromFile("hitbox.png");
 
@@ -369,7 +368,7 @@ namespace th
 						90.0f - 7.5f + (float)i * 5.0f,
 						0.0f,
 						10.0f,
-						texReimuCard,
+						&texReimuCard,
 						15.0f,
 						false
 					);
@@ -504,7 +503,7 @@ namespace th
 
 	void GameplayScene::Register()
 	{
-		lua["Shoot"] = [this](float x, float y, float spd, float dir, float acc, std::shared_ptr<sf::Texture> texture, float radius, bool rotate)
+		lua["Shoot"] = [this](float x, float y, float spd, float dir, float acc, sf::Texture* texture, float radius, bool rotate)
 		{
 			instance_id id = next_id++;
 			bullets.emplace_back(
@@ -558,9 +557,9 @@ namespace th
 
 		lua["LoadTexture"] = [this](std::string fname)
 		{
-			std::shared_ptr<sf::Texture> t = std::make_shared<sf::Texture>();
+			auto& t = loaded_textures.emplace_back(std::make_unique<sf::Texture>());
 			t->loadFromFile((script_path / fname).string());
-			return t;
+			return t.get();
 		};
 
 		// bullet

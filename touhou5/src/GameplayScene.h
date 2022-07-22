@@ -20,8 +20,7 @@ namespace th
 	public:
 		GameplayScene(Game& game, const std::filesystem::path& script_path)
 			: Scene(game), script_path(script_path)
-		{
-		}
+		{}
 
 		void Init() override;
 		void Update(float delta) override;
@@ -44,20 +43,23 @@ namespace th
 		Bullet* FindBullet(instance_id id);
 		Enemy* FindEnemy(instance_id id);
 
-		std::filesystem::path script_path;
-
-		sf::RenderTexture play_area;
 		int hiscore = 0;
 		float co_timer = 0.0f;
+		int did_co = 0;
+		int did_physics = 0;
+
+		std::filesystem::path script_path;
+		sf::RenderTexture play_area;
 
 		sol::state lua;
 		sol::thread co_runner;
 		sol::coroutine co;
 
 		sf::Texture texReimu;
-		std::shared_ptr<sf::Texture> texReimuCard;
+		sf::Texture texReimuCard;
 		sf::Texture texBg;
 		sf::Texture texHitbox;
+		std::vector<std::unique_ptr<sf::Texture>> loaded_textures;
 
 		Character characters[2] = {};
 
@@ -68,8 +70,5 @@ namespace th
 		std::vector<Bullet> player_bullets;
 		std::vector<Enemy> enemies;
 		std::vector<Powerup> powerups;
-
-		int did_co = 0;
-		int did_physics = 0;
 	};
 }

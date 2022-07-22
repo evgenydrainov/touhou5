@@ -26,16 +26,12 @@ namespace th
 		void Render(sf::RenderTarget& target, float delta);
 
 		std::filesystem::path scripts_path = "Scripts";
-
 		InputManager input;
-
 		sf::RenderWindow window;
 		sf::RenderTexture game_surf;
+		sf::Font font;
 		std::unique_ptr<Scene> scene;
 		std::unique_ptr<Scene> next_scene;
-
-		sf::Font font;
-
 		float time = 0.0f;
 		int frame = 0;
 		float fps = 0.0f;

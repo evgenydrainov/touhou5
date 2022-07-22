@@ -9,8 +9,7 @@ namespace th
 	public:
 		ErrorScene(Game& game, const std::string& what) :
 			Scene(game), what(what)
-		{
-		}
+		{}
 
 		void Init() override;
 		void Update(float delta) override;

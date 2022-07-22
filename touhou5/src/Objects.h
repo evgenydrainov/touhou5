@@ -55,10 +55,9 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		std::shared_ptr<sf::Texture> texture;
+		sf::Texture* texture;
 		float dmg;
 		bool rotate;
-		float lifetime;
 	};
 
 	struct Enemy
@@ -70,7 +69,7 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		std::shared_ptr<sf::Texture> texture;
+		sf::Texture* texture;
 		float hp;
 		sol::thread co_runner;
 		sol::coroutine co;
@@ -91,7 +90,7 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		std::shared_ptr<sf::Texture> texture;
+		sf::Texture* texture;
 		float hp;
 		sol::thread co_runner;
 		sol::coroutine co;
