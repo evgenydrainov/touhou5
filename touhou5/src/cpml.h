@@ -41,11 +41,6 @@ namespace cpml
 		return sqr(x2 - x1) + sqr(y2 - y1) < sqr(r1 + r2);
 	}
 
-	constexpr bool point_in_rect(float px, float py, float rx1, float ry1, float rx2, float ry2)
-	{
-		return (rx1 <= px && px < rx2) && (ry1 <= py && py < ry2);
-	}
-
 	inline float dcos(float degrees)
 	{
 		return std::cos(deg2rad(degrees));

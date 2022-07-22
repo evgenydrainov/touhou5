@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Window/Keyboard.hpp>
 #include <cstdint>
 #include <cstddef>
@@ -24,9 +25,9 @@ namespace th
 	public:
 		void Update();
 
-		constexpr bool Check(input_state key) { return (state & key) != 0; }
-		constexpr bool CheckPressed(input_state key) { return (state_press & key) != 0; }
-		constexpr bool CheckReleased(input_state key) { return (state_release & key) != 0; }
+		bool Check(input_state key) { return (state & key) != 0; }
+		bool CheckPressed(input_state key) { return (state_press & key) != 0; }
+		bool CheckReleased(input_state key) { return (state_release & key) != 0; }
 
 		input_state state = 0;
 		input_state state_press = 0;

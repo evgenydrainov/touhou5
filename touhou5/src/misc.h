@@ -1,4 +1,5 @@
 #pragma once
+
 #include <SFML/Graphics.hpp>
 
 enum class HAlign { Left, Center, Right };
@@ -11,22 +12,22 @@ inline void AlignText(sf::Text& text, HAlign halign, VAlign valign)
 
 	switch (halign) {
 		case HAlign::Center: {
-			o.x = b.left + 0.5f * b.width;
+			o.x = b.left + b.width / 2.0f;
 			break;
 		}
 		case HAlign::Right: {
-			o.x = b.width + 2.0f * b.left;
+			o.x = b.width + b.left;
 			break;
 		}
 	}
 
 	switch (valign) {
 		case VAlign::Middle: {
-			o.y = b.top + 0.5f * b.width;
+			o.y = b.top + b.width / 2.0f;
 			break;
 		}
 		case VAlign::Bottom: {
-			o.y = b.height + 2.0f * b.top;
+			o.y = b.height + b.top;
 			break;
 		}
 	}

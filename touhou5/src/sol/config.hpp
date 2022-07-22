@@ -20,5 +20,5 @@ the build system, or the command line options of your compiler.
 
 #ifdef _DEBUG
 #define SOL_ALL_SAFETIES_ON 1
-#define SOL_PRINT_ERRORS 1
+#define SOL_PRINT_ERRORS 0
 #endif

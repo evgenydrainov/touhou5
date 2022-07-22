@@ -1,6 +1,6 @@
 #include "Game.h"
 
-#include "GameplayScene.h"
+#include "TitleScene.h"
 
 #include "misc.h"
 #include <fmt/format.h>
@@ -13,48 +13,110 @@ namespace th
 
 	void Game::Run()
 	{
-		window.create(sf::VideoMode(GAME_W, GAME_H), "th");
-		window.setVerticalSyncEnabled(true);
-		window.setKeyRepeatEnabled(false);
-
-		game_surf.create(GAME_W, GAME_H);
-
-		font.loadFromFile("Oranienbaum-Regular.ttf");
-
-		scene = std::make_unique<GameplayScene>(*this);
-		scene->Init();
+		Init();
 
 		sf::Clock clock;
 		while (window.isOpen()) {
+			do_frame = !frame_advance;
+
 			sf::Event event;
 			while (window.hasFocus() ? window.pollEvent(event) : window.waitEvent(event)) {
-				if (event.type == sf::Event::Closed) {
-					window.close();
+				switch (event.type) {
+					case sf::Event::Closed: {
+						window.close();
+						break;
+					}
+					case sf::Event::KeyPressed: {
+#if TH_DEBUG
+						if (event.key.code == sf::Keyboard::F1) debug ^= true;
+#endif
+						if (!debug) break;
+						switch (event.key.code) {
+							// restart
+							case sf::Keyboard::F2: {
+								next_scene = std::make_unique<TitleScene>(*this);
+								break;
+							}
+							case sf::Keyboard::F5: {
+								frame_advance = true;
+								do_frame = true;
+								break;
+							}
+							case sf::Keyboard::F6: {
+								frame_advance = false;
+								break;
+							}
+						}
+						break;
+					}
 				}
 			}
 
 			sf::Time t = clock.restart();
 			float delta = std::min(t.asSeconds(), 1.0f / 30.0f) * 60.0f;
 
-			mean_fps_sum += 1.0f / t.asSeconds();
-			mean_fps_samples++;
-			if (mean_fps_samples >= 100) {
-				mean_fps = mean_fps_sum / (float)mean_fps_samples;
-				mean_fps_sum = 0.0f;
-				mean_fps_samples = 0;
+			fps_sum += 1.0f / t.asSeconds();
+			fps_samples++;
+			fps_clock += delta;
+			if (fps_clock >= 60.0f) {
+				fps = fps_sum / (float)fps_samples;
+				fps_sum = 0.0f;
+				fps_samples = 0;
+				fps_clock = 0.0f;
 			}
 
-			Update(delta);
-
-			window.clear();
-			{
-				Render(window, delta);
-			}
-			window.display();
+			Tick(delta);
 
 			time += delta;
 			frame++;
 		}
+	}
+
+	void Game::Init()
+	{
+		window.create(sf::VideoMode(GAME_W, GAME_H), "th");
+		window.setVerticalSyncEnabled(true);
+
+		game_surf.create(GAME_W, GAME_H);
+
+		font.loadFromFile("Oranienbaum-Regular.ttf");
+
+		next_scene = std::make_unique<TitleScene>(*this);
+	}
+
+	void Game::Tick(float delta)
+	{
+		sf::Clock c;
+
+		Update(delta);
+
+		window.clear();
+		{
+			Render(window, delta);
+		}
+
+		fps_real = 1.0f / c.getElapsedTime().asSeconds();
+
+		if (debug) {
+			static sf::Text t;
+			t.setFont(font);
+			t.setCharacterSize(24);
+			t.setString(fmt::format(
+				"{:.2f}fps\n"
+				"update {:.2f}ms\n"
+				"render {:.2f}ms\n"
+				"time passed {:.2f}\n"
+				"frames passed {}\n",
+				fps_real,
+				update_took,
+				render_took,
+				time,
+				frame
+			));
+			window.draw(t);
+		}
+
+		window.display();
 	}
 
 	void Game::Update(float delta)
@@ -68,7 +130,9 @@ namespace th
 			scene->Init();
 		}
 
-		scene->Update(delta);
+		if (do_frame) {
+			scene->Update(delta);
+		}
 
 		update_took = c.getElapsedTime().asSeconds() * 1000.0f;
 	}
@@ -77,27 +141,36 @@ namespace th
 	{
 		sf::Clock c;
 
-		game_surf.clear();
-		{
-			scene->Render(game_surf, delta);
-			static sf::Text t;
-			t.setFont(font);
-			t.setCharacterSize(16);
-			t.setString(fmt::format(
-				"{:.2f}fps\n"
-				"update {:.2f}ms\n"
-				"render {:.2f}ms",
-				mean_fps,
-				update_took,
-				render_took
-			));
-			t.setPosition(GAME_W, GAME_H);
-			AlignText(t, HAlign::Right, VAlign::Bottom);
-			game_surf.draw(t);
-		}
-		game_surf.display();
+		if (do_frame) {
+			game_surf.clear();
 
-		target.draw(sf::Sprite(game_surf.getTexture()));
+			scene->Render(game_surf, delta);
+
+			{
+				static sf::Text t;
+				t.setFont(font);
+				t.setCharacterSize(16);
+				t.setString(fmt::format("{:.2f}fps", fps));
+				t.setPosition(GAME_W, GAME_H);
+				AlignText(t, HAlign::Right, VAlign::Bottom);
+				game_surf.draw(t);
+			}
+
+			game_surf.display();
+		}
+
+		{
+			sf::Vector2f to(target.getSize());
+			sf::Vector2f from(game_surf.getSize());
+			target.setView(sf::View(to / 2.0f, to));
+			float scale = std::min(to.x / from.x, to.y / from.y);
+			sf::Sprite s;
+			s.setTexture(game_surf.getTexture());
+			s.setScale(scale, scale);
+			s.setPosition(to / 2.0f);
+			s.setOrigin(from / 2.0f);
+			target.draw(s);
+		}
 
 		render_took = c.getElapsedTime().asSeconds() * 1000.0f;
 	}
