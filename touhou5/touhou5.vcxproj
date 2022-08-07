@@ -100,6 +100,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,6 +122,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +143,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,6 +165,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
+      <DisableSpecificWarnings>26812</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -173,10 +177,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ErrorScene.cpp" />
+    <ClCompile Include="src\Audio.cpp" />
+    <ClCompile Include="src\Scenes\ErrorScene.cpp" />
     <ClCompile Include="src\Game.cpp" />
-    <ClCompile Include="src\GameplayScene.cpp" />
-    <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\Scenes\GameScene.cpp" />
+    <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="libsrc\format.cc" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Menu.cpp" />
@@ -186,21 +191,22 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\TitleScene.cpp" />
+    <ClCompile Include="src\Scenes\TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Audio.h" />
     <ClInclude Include="src\cpml.h" />
-    <ClInclude Include="src\ErrorScene.h" />
+    <ClInclude Include="src\Scenes\ErrorScene.h" />
     <ClInclude Include="src\Game.h" />
-    <ClInclude Include="src\GameplayScene.h" />
-    <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\Scenes\GameScene.h" />
+    <ClInclude Include="src\Input.h" />
     <ClInclude Include="src\Menu.h" />
     <ClInclude Include="src\misc.h" />
-    <ClInclude Include="src\Objects.h" />
-    <ClInclude Include="src\Scene.h" />
+    <ClInclude Include="src\Scenes\Objects.h" />
+    <ClInclude Include="src\Scenes\Scene.h" />
     <ClInclude Include="src\sol\config.hpp" />
     <ClInclude Include="src\stdafx.h" />
-    <ClInclude Include="src\TitleScene.h" />
+    <ClInclude Include="src\Scenes\TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

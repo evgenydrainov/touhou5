@@ -8,7 +8,8 @@ namespace th
 	{
 	public:
 		ErrorScene(Game& game, const std::string& what) :
-			Scene(game), what(what)
+			Scene(game),
+			what(what)
 		{}
 
 		void Init() override;

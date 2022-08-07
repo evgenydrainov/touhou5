@@ -5,10 +5,23 @@
 
 namespace th
 {
+	class ScriptButton : public MenuButton
+	{
+	public:
+		ScriptButton(Game& game, const std::filesystem::path& path);
+
+		void OnPressed() override;
+
+		std::filesystem::path path;
+	};
+
 	class TitleScene : public Scene
 	{
 	public:
-		TitleScene(Game& game) : Scene(game) {}
+		TitleScene(Game& game) :
+			Scene(game),
+			menu(game)
+		{}
 
 		void Init() override;
 		void Update(float delta) override;

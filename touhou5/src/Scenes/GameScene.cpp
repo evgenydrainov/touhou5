@@ -1,4 +1,4 @@
-#include "GameplayScene.h"
+#include "GameScene.h"
 
 #include "ErrorScene.h"
 
@@ -8,24 +8,19 @@
 
 namespace th
 {
-	void GameplayScene::Init()
+	void GameScene::Init()
 	{
 		texReimu.loadFromFile("reimu.png");
 		texReimuCard.loadFromFile("reimucard.png");
 		texBg.loadFromFile("bg.png");
 		texHitbox.loadFromFile("hitbox.png");
-
-		characters[0].name = "Reimu Hakurei";
-		characters[0].move_spd = 3.75f;
-		characters[0].focus_spd = 1.75f;
-		characters[0].radius = 2.0f;
-		characters[0].graze_radius = 16.0f;
-		characters[0].texture = &texReimu;
+		sndReimuShoot.loadFromFile("se_plst00.wav");
 
 		player.x = PLAY_AREA_W / 2;
 		player.y = PLAY_AREA_H / 4 * 3;
 		player.lives = 5;
 		player.bombs = 2;
+		player.texture = &texReimu;
 
 		play_area.create(PLAY_AREA_W, PLAY_AREA_H);
 
@@ -58,7 +53,7 @@ namespace th
 		}
 	}
 
-	void GameplayScene::Update(float delta)
+	void GameScene::Update(float delta)
 	{
 		UpdatePlayer(delta);
 
@@ -85,6 +80,12 @@ namespace th
 				b = player_bullets.erase(b);
 				continue;
 			}
+			switch (b->type) {
+				case PLAYER_BULLET_REIMU_CARD: {
+					b->reimu_card.rotation -= 10.0f * delta;
+					break;
+				}
+			}
 			++b;
 		}
 
@@ -102,33 +103,33 @@ namespace th
 			++e;
 		}
 
-		for (auto p = powerups.begin(); p != powerups.end();) {
+		for (auto p = pickups.begin(); p != pickups.end();) {
 			p->vsp += p->grv * delta;
 			p->vsp = std::min(p->vsp, p->max_vsp);
 			p->y += p->vsp * delta;
 			if (!InBounds(p->x, p->y)) {
-				p = powerups.erase(p);
+				p = pickups.erase(p);
 				continue;
 			}
-			if (cpml::circle_vs_circle(p->x, p->y, p->radius, player.x, player.y, characters[player.character_id].radius)) {
+			if (cpml::circle_vs_circle(p->x, p->y, p->radius, player.x, player.y, game.characters[player.character].radius)) {
 				switch (p->type) {
-					case PowerupType::Points: {
-						player.points++;
+					case PICKUP_POINTS: {
+						++player.points;
 						break;
 					}
-					case PowerupType::Power: {
-						player.power++;
+					case PICKUP_POWER: {
+						++player.power;
 						break;
 					}
 				}
-				p = powerups.erase(p);
+				p = pickups.erase(p);
 				continue;
 			}
 			++p;
 		}
 	}
 
-	void GameplayScene::Render(sf::RenderTarget& target, float delta)
+	void GameScene::Render(sf::RenderTarget& target, float delta)
 	{
 		play_area.clear();
 		{
@@ -140,14 +141,6 @@ namespace th
 					s.setOrigin(sf::Vector2f(boss->texture->getSize()) / 2.0f);
 					play_area.draw(s);
 				}
-				if (game.debug) {
-					sf::CircleShape c;
-					c.setRadius(boss->radius);
-					c.setOrigin(boss->radius, boss->radius);
-					c.setPosition(boss->x, boss->y);
-					c.setFillColor(sf::Color(255, 255, 255, 100));
-					play_area.draw(c);
-				}
 			}
 
 			for (Enemy& e : enemies) {
@@ -158,70 +151,45 @@ namespace th
 					s.setOrigin(sf::Vector2f(e.texture->getSize()) / 2.0f);
 					play_area.draw(s);
 				}
-				if (game.debug) {
-					sf::CircleShape c;
-					c.setRadius(e.radius);
-					c.setOrigin(e.radius, e.radius);
-					c.setPosition(e.x, e.y);
-					play_area.draw(c);
-				}
+			}
+
+			if (player.texture) {
+				sf::Sprite s;
+				s.setTexture(*player.texture);
+				s.setPosition(player.x, player.y);
+				s.setOrigin(sf::Vector2f(player.texture->getSize()) / 2.0f);
+				play_area.draw(s);
 			}
 
 			{
-				sf::Sprite s;
-				s.setTexture(*characters[player.character_id].texture);
-				s.setPosition(player.x, player.y);
-				s.setOrigin(sf::Vector2f(characters[player.character_id].texture->getSize()) / 2.0f);
-				play_area.draw(s);
-				{
-					static float alpha = 0.0f;
-					alpha = cpml::approach(alpha, player.is_focused ? 1.0f : 0.0f, 0.1f * delta);
-					if (alpha > 0.0f) {
-						sf::Sprite s;
-						s.setTexture(texHitbox);
-						s.setPosition(player.x, player.y);
-						s.setOrigin(sf::Vector2f(texHitbox.getSize()) / 2.0f);
-						s.setRotation(game.time);
-						s.setColor(sf::Color(255, 255, 255, alpha * 255.0f));
-						play_area.draw(s);
-					}
-				}
-				if (game.debug) {
-					{
-						sf::CircleShape c;
-						c.setRadius(characters[player.character_id].graze_radius);
-						c.setOrigin(characters[player.character_id].graze_radius, characters[player.character_id].graze_radius);
-						c.setPosition(player.x, player.y);
-						c.setFillColor(sf::Color::Black);
-						play_area.draw(c);
-					}
-					{
-						sf::CircleShape c;
-						c.setRadius(characters[player.character_id].radius);
-						c.setOrigin(characters[player.character_id].radius, characters[player.character_id].radius);
-						c.setPosition(player.x, player.y);
-						play_area.draw(c);
-					}
+				static float alpha = 0.0f;
+				alpha = cpml::approach(alpha, player.is_focused ? 1.0f : 0.0f, 0.1f * delta);
+				if (alpha > 0.0f) {
+					sf::Sprite s;
+					s.setTexture(texHitbox);
+					s.setPosition(player.x, player.y);
+					s.setOrigin(sf::Vector2f(texHitbox.getSize()) / 2.0f);
+					s.setRotation(game.time);
+					s.setColor(sf::Color(255, 255, 255, alpha * 255.0f));
+					play_area.draw(s);
 				}
 			}
 
-			for (Bullet& b : player_bullets) {
+			for (PlayerBullet& b : player_bullets) {
 				if (b.texture) {
-					sf::Sprite s;
-					s.setTexture(*b.texture);
-					s.setPosition(b.x, b.y);
-					s.setOrigin(sf::Vector2f(b.texture->getSize()) / 2.0f);
-					s.setScale(1.5f, 1.5f);
-					s.setColor(sf::Color(255, 255, 255, 128));
-					play_area.draw(s);
-				}
-				if (game.debug) {
-					sf::CircleShape c;
-					c.setRadius(b.radius);
-					c.setOrigin(b.radius, b.radius);
-					c.setPosition(b.x, b.y);
-					c.setFillColor(sf::Color(255, 255, 255, 100));
-					play_area.draw(c);
+					switch (b.type) {
+						case PLAYER_BULLET_REIMU_CARD: {
+							sf::Sprite s;
+							s.setTexture(*b.texture);
+							s.setPosition(b.x, b.y);
+							s.setOrigin(sf::Vector2f(b.texture->getSize()) / 2.0f);
+							s.setScale(1.5f, 1.5f);
+							s.setColor(sf::Color(255, 255, 255, 128));
+							s.setRotation(b.reimu_card.rotation);
+							play_area.draw(s);
+							break;
+						}
+					}
 				}
 			}
 
@@ -231,26 +199,15 @@ namespace th
 					s.setTexture(*b.texture);
 					s.setPosition(b.x, b.y);
 					s.setOrigin(sf::Vector2f(b.texture->getSize()) / 2.0f);
+					if (b.rotate) {
+						s.setRotation(-b.dir);
+					}
 					play_area.draw(s);
-				}
-				if (game.debug) {
-					sf::CircleShape c;
-					c.setRadius(b.radius);
-					c.setOrigin(b.radius, b.radius);
-					c.setPosition(b.x, b.y);
-					c.setFillColor(sf::Color::Red);
-					play_area.draw(c);
 				}
 			}
 
-			for (Powerup& p : powerups) {
-				if (game.debug) {
-					sf::CircleShape c;
-					c.setRadius(p.radius);
-					c.setOrigin(p.radius, p.radius);
-					c.setPosition(p.x, p.y);
-					play_area.draw(c);
-				}
+			for (Pickup& p : pickups) {
+
 			}
 
 			if (boss) {
@@ -270,6 +227,65 @@ namespace th
 				play_area.draw(t);
 			}
 		}
+
+		if (game.show_hitboxes) {
+			if (boss) {
+				sf::CircleShape c;
+				c.setRadius(boss->radius);
+				c.setOrigin(boss->radius, boss->radius);
+				c.setPosition(boss->x, boss->y);
+				c.setFillColor(sf::Color(255, 255, 255, 100));
+				play_area.draw(c);
+			}
+
+			for (Enemy& e : enemies) {
+				sf::CircleShape c;
+				c.setRadius(e.radius);
+				c.setOrigin(e.radius, e.radius);
+				c.setPosition(e.x, e.y);
+				play_area.draw(c);
+			}
+
+			sf::CircleShape c;
+			c.setRadius(game.characters[player.character].graze_radius);
+			c.setOrigin(game.characters[player.character].graze_radius, game.characters[player.character].graze_radius);
+			c.setPosition(player.x, player.y);
+			c.setFillColor(sf::Color::Black);
+			play_area.draw(c);
+
+			sf::CircleShape c2;
+			c2.setRadius(game.characters[player.character].radius);
+			c2.setOrigin(game.characters[player.character].radius, game.characters[player.character].radius);
+			c2.setPosition(player.x, player.y);
+			play_area.draw(c2);
+
+			for (PlayerBullet& b : player_bullets) {
+				sf::CircleShape c;
+				c.setRadius(b.radius);
+				c.setOrigin(b.radius, b.radius);
+				c.setPosition(b.x, b.y);
+				c.setFillColor(sf::Color(255, 255, 255, 100));
+				play_area.draw(c);
+			}
+
+			for (Bullet& b : bullets) {
+				sf::CircleShape c;
+				c.setRadius(b.radius);
+				c.setOrigin(b.radius, b.radius);
+				c.setPosition(b.x, b.y);
+				c.setFillColor(sf::Color::Red);
+				play_area.draw(c);
+			}
+
+			for (Pickup& p : pickups) {
+				sf::CircleShape c;
+				c.setRadius(p.radius);
+				c.setOrigin(p.radius, p.radius);
+				c.setPosition(p.x, p.y);
+				play_area.draw(c);
+			}
+		}
+
 		play_area.display();
 
 		{
@@ -306,32 +322,9 @@ namespace th
 			t.setPosition(PLAY_AREA_X + PLAY_AREA_W + 16, PLAY_AREA_Y + 32);
 			target.draw(t);
 		}
-
-		if (game.debug) {
-			static sf::Text t;
-			t.setFont(game.font);
-			t.setCharacterSize(16);
-			t.setString(fmt::format(
-				"bullets: {}\n"
-				"enemies: {}\n"
-				"player bullets: {}\n"
-				"powerups: {}\n"
-				"did physics: {}\n"
-				"did co: {}",
-				bullets.size(),
-				enemies.size(),
-				player_bullets.size(),
-				powerups.size(),
-				did_physics,
-				did_co
-			));
-			t.setPosition(GAME_W, 0);
-			AlignText(t, HAlign::Right, VAlign::Top);
-			target.draw(t);
-		}
 	}
 
-	void GameplayScene::UpdatePlayer(float delta)
+	void GameScene::UpdatePlayer(float delta)
 	{
 		int h = input.Check(Key::Right) - input.Check(Key::Left);
 		int v = input.Check(Key::Down) - input.Check(Key::Up);
@@ -339,8 +332,8 @@ namespace th
 
 		float spd =
 			player.is_focused ?
-			characters[player.character_id].focus_spd :
-			characters[player.character_id].move_spd;
+			game.characters[player.character].focus_spd :
+			game.characters[player.character].move_spd;
 
 		player.hsp = 0.0f;
 		player.vsp = 0.0f;
@@ -360,21 +353,19 @@ namespace th
 		if (player.reimu.fire_timer <= 0) {
 			if (player.reimu.fire_queue > 0) {
 				for (int i = 0; i < 4; i++) {
-					player_bullets.emplace_back(
-						next_id++,
-						player.x,
-						player.y - 10.0f,
-						12.0f,
-						90.0f - 7.5f + (float)i * 5.0f,
-						0.0f,
-						10.0f,
-						&texReimuCard,
-						15.0f,
-						false
-					);
+					PlayerBullet& b = player_bullets.emplace_back();
+					b.x = player.x;
+					b.y = player.y - 10.0f;
+					b.spd = 12.0f;
+					b.dir = 90.0f - 7.5f + (float)i * 5.0f;
+					b.texture = &texReimuCard;
+					b.radius = 10.0f;
+					b.dmg = 15.0f;
+					b.type = PLAYER_BULLET_REIMU_CARD;
 				}
 				player.reimu.fire_timer = 4.0f;
 				--player.reimu.fire_queue;
+				audio.PlaySound(sndReimuShoot);
 			} else if (input.Check(Key::Z)) {
 				player.reimu.fire_queue = 6;
 			}
@@ -390,7 +381,7 @@ namespace th
 		}
 	}
 
-	void GameplayScene::DoPhysics(float delta)
+	void GameScene::DoPhysics(float delta)
 	{
 		did_physics = 0;
 		while (delta > 0.0f) {
@@ -401,7 +392,7 @@ namespace th
 		}
 	}
 
-	void GameplayScene::PhysicsStep(float delta)
+	void GameScene::PhysicsStep(float delta)
 	{
 		player.x += player.hsp * delta;
 		player.y += player.vsp * delta;
@@ -410,7 +401,7 @@ namespace th
 			b->spd += b->acc * delta;
 			b->x += cpml::lengthdir_x(b->spd, b->dir) * delta;
 			b->y += cpml::lengthdir_y(b->spd, b->dir) * delta;
-			if (cpml::circle_vs_circle(b->x, b->y, b->radius, player.x, player.y, characters[player.character_id].radius)) {
+			if (cpml::circle_vs_circle(b->x, b->y, b->radius, player.x, player.y, game.characters[player.character].radius)) {
 				player.lives--;
 				b = bullets.erase(b);
 				continue;
@@ -419,7 +410,7 @@ namespace th
 		}
 	}
 
-	bool GameplayScene::UpdateBoss(Boss& boss, float delta)
+	bool GameScene::UpdateBoss(Boss& boss, float delta)
 	{
 		boss.spd += boss.acc * delta;
 		boss.x += cpml::lengthdir_x(boss.spd, boss.dir) * delta;
@@ -450,7 +441,7 @@ namespace th
 		return true;
 	}
 
-	void GameplayScene::DoCoro(float delta)
+	void GameScene::DoCoro(float delta)
 	{
 		co_timer += delta;
 		did_co = 0;
@@ -478,7 +469,7 @@ namespace th
 		}
 	}
 
-	bool GameplayScene::UpdateEnemy(Enemy& e, float delta)
+	bool GameScene::UpdateEnemy(Enemy& e, float delta)
 	{
 		e.spd += e.acc * delta;
 		e.x += cpml::lengthdir_x(e.spd, e.dir) * delta;
@@ -491,7 +482,13 @@ namespace th
 				e.hp -= b->dmg;
 				b = player_bullets.erase(b);
 				if (e.hp <= 0.0f) {
-					powerups.emplace_back(e.x, e.y, -1.5f, 0.025f, 2.0f, 5.0f);
+					Pickup& p = pickups.emplace_back();
+					p.x = e.x;
+					p.y = e.y;
+					p.vsp = -1.5f;
+					p.grv = 0.025f;
+					p.max_vsp = 2.0f;
+					p.radius = 5.0f;
 					return false;
 				}
 				continue;
@@ -501,23 +498,21 @@ namespace th
 		return true;
 	}
 
-	void GameplayScene::Register()
+	void GameScene::Register()
 	{
 		lua["Shoot"] = [this](float x, float y, float spd, float dir, float acc, sf::Texture* texture, float radius, bool rotate)
 		{
-			instance_id id = next_id++;
-			bullets.emplace_back(
-				id,
-				x,
-				y,
-				spd,
-				dir,
-				acc,
-				radius,
-				texture,
-				rotate
-			);
-			return id;
+			Bullet& b = bullets.emplace_back();
+			b.id = next_id++;
+			b.x = x;
+			b.y = y;
+			b.spd = spd;
+			b.dir = dir;
+			b.acc = acc;
+			b.texture = texture;
+			b.radius = radius;
+			b.rotate = rotate;
+			return b.id;
 		};
 
 		lua["CreateBoss"] = [this](sol::table desc)
@@ -544,15 +539,17 @@ namespace th
 
 		lua["CreateEnemy"] = [this](float x, float y, sol::table desc)
 		{
-			instance_id id = next_id++;
-			Enemy& e = enemies.emplace_back(id, x, y);
+			Enemy& e = enemies.emplace_back();
+			e.id = next_id++;
+			e.x = x;
+			e.y = y;
 			e.radius = 5.0f;
 			e.texture = desc["Texture"];
 			e.hp = desc["HP"];
 			e.co_runner = sol::thread::create(lua);
 			sol::coroutine script = desc["Script"];
 			e.co = sol::coroutine(e.co_runner.thread_state(), script);
-			return id;
+			return e.id;
 		};
 
 		lua["LoadTexture"] = [this](std::string fname)
@@ -616,7 +613,7 @@ namespace th
 		lua["BossSetRadius"] = [this](float radius) { if (boss) boss->radius = radius; };
 	}
 
-	void GameplayScene::BossStartPhase(Boss& b)
+	void GameScene::BossStartPhase(Boss& b)
 	{
 		const BossPhase& p = b.phases[b.phase_index];
 		b.hp = p.hp;
@@ -626,7 +623,7 @@ namespace th
 		b.co = sol::coroutine(b.co_runner.thread_state(), p.script);
 	}
 
-	bool GameplayScene::BossEndPhase(Boss& b)
+	bool GameScene::BossEndPhase(Boss& b)
 	{
 		bullets.clear();
 		if (b.phase_index + 1 >= b.phases.size()) {
@@ -637,7 +634,7 @@ namespace th
 		return true;
 	}
 
-	void GameplayScene::CheckResult(sol::protected_function_result pres)
+	void GameScene::CheckResult(sol::protected_function_result pres)
 	{
 		if (!pres.valid()) {
 			sol::error err = pres;
@@ -645,12 +642,12 @@ namespace th
 		}
 	}
 
-	void GameplayScene::Error(const std::string& what)
+	void GameScene::Error(const std::string& what)
 	{
 		game.next_scene = std::make_unique<ErrorScene>(game, what);
 	}
 
-	bool GameplayScene::InBounds(float x, float y)
+	bool GameScene::InBounds(float x, float y)
 	{
 		float l = -OFFSET;
 		float r = (float)(PLAY_AREA_W - 1) + OFFSET;
@@ -659,7 +656,7 @@ namespace th
 		return (x >= l && y >= t) && (x <= r && y <= b);
 	}
 
-	Bullet* GameplayScene::FindBullet(instance_id id)
+	Bullet* GameScene::FindBullet(instance_id id)
 	{
 		size_t left = 0;
 		size_t right = bullets.size() - 1;
@@ -678,7 +675,7 @@ namespace th
 		return nullptr;
 	}
 
-	Enemy* GameplayScene::FindEnemy(instance_id id)
+	Enemy* GameScene::FindEnemy(instance_id id)
 	{
 		size_t left = 0;
 		size_t right = enemies.size() - 1;

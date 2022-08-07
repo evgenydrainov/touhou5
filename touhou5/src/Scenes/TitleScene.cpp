@@ -1,19 +1,28 @@
 #include "TitleScene.h"
 
-#include "GameplayScene.h"
+#include "GameScene.h"
 
 namespace th
 {
+	ScriptButton::ScriptButton(Game& game, const std::filesystem::path& path) :
+		MenuButton(game),
+		path(path)
+	{
+		label = path.filename().string();
+	}
+
+	void ScriptButton::OnPressed()
+	{
+		game.next_scene = std::make_unique<GameScene>(game, path);
+	}
+
 	void TitleScene::Init()
 	{
-		for (const auto& e : std::filesystem::directory_iterator(game.scripts_path)) {
+		std::error_code err;
+		for (const auto& e : std::filesystem::directory_iterator(game.scripts_path, err)) {
 			if (!e.is_directory()) continue;
 			if (e.path().filename().string()[0] == '.') continue;
-
-			menu.buttons.emplace_back(e.path().filename().string(), [this, path = e.path()]()
-			{
-				game.next_scene = std::make_unique<GameplayScene>(game, path);
-			});
+			menu.entities.emplace_back(std::make_unique<ScriptButton>(game, e.path()));
 		}
 
 		label.setFont(game.font);
@@ -24,7 +33,7 @@ namespace th
 
 	void TitleScene::Update(float delta)
 	{
-		menu.Update(input);
+		menu.Update();
 	}
 
 	void TitleScene::Render(sf::RenderTarget& target, float delta)
@@ -33,11 +42,11 @@ namespace th
 
 		float x = 100.0f;
 		float y = 212.0f;
-		for (size_t i = 0; i < menu.buttons.size(); i++) {
+		for (size_t i = 0; i < menu.entities.size(); i++) {
 			sf::Text t;
 			t.setFont(game.font);
 			t.setCharacterSize(16);
-			t.setString(menu.buttons[i].label);
+			t.setString(menu.entities[i]->label);
 			t.setPosition(x, y);
 			y += 16.0f;
 			if (i == menu.cursor) {

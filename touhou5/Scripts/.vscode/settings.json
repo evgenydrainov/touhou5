@@ -1,9 +1,5 @@
 {
     "Lua.diagnostics.disable": [
         "redefined-local"
-    ],
-    "Lua.workspace.library": [
-        "${3rd}/thmeta/library"
-    ],
-    "Lua.workspace.checkThirdParty": false
+    ]
 }

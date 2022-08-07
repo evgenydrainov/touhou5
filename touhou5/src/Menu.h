@@ -1,24 +1,71 @@
 #pragma once
 
-#include <vector>
-#include <string>
-#include <functional>
-#include "InputManager.h"
+#include "Game.h"
 
 namespace th
 {
-	struct MenuButton
+	class MenuEntity
 	{
+	public:
+		MenuEntity(Game& game) :
+			game(game),
+			input(game.input),
+			audio(game.audio)
+		{}
+
+		virtual ~MenuEntity() = default;
+
+		Game& game;
+		const Input& input;
+		Audio& audio;
+
 		std::string label;
-		std::function<void()> on_click;
+	};
+
+	class MenuButton : public MenuEntity
+	{
+	public:
+		MenuButton(Game& game) :
+			MenuEntity(game)
+		{}
+
+		virtual void OnPressed() {}
+
+		bool on = false;
+	};
+
+	class MenuSlider : public MenuEntity
+	{
+	public:
+		MenuSlider(Game& game) :
+			MenuEntity(game)
+		{}
+
+		virtual void OnValueChanged() {}
+
+		float from = 0.0f;
+		float to = 0.0f;
+		int steps = 1;
+		int step = 0;
+		float value = 0.0f;
 	};
 
 	class Menu
 	{
 	public:
-		void Update(InputManager& input);
+		Menu(Game& game) :
+			game(game),
+			input(game.input),
+			audio(game.audio)
+		{}
 
-		std::vector<MenuButton> buttons;
+		void Update();
+
+		Game& game;
+		const Input& input;
+		Audio& audio;
+
+		std::vector<std::unique_ptr<MenuEntity>> entities;
 		size_t cursor = 0;
 	};
 }

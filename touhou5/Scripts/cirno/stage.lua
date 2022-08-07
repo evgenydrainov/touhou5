@@ -2,6 +2,13 @@ local th = require('touhou')
 
 local texCirno = LoadTexture('cirno.png')
 local texBullet = LoadTexture('bullet.png')
+local texPellet = LoadTexture('pellet.png')
+
+local CirnoBullet = {
+	Texture = texBullet,
+	Radius = 3,
+	Rotate = false
+}
 
 local Nonspell1 = {
 	HP = 4000,
@@ -17,7 +24,7 @@ local Nonspell1 = {
 			for i = 1, 3 do
 				for i = 0, 5 do
 					th.ShootRadial(2+i, 5, function()
-						return th.BossShootAtPlr(th.lerp(7.5, 4, i/5), 0, texBullet, 3, false)
+						return th.BossShootAtPlr(th.lerp(7.5, 4, i/5), 0, texPellet, 3, true)
 					end)
 				end
 
@@ -32,7 +39,7 @@ local Nonspell1 = {
 				th.wait(10)
 
 				local b = th.ShootRadial(17, 360/17, function()
-					return th.BossShootAtPlr(5, -.1, texBullet, 3, false)
+					return th.BossShootAtPlr(5, -.1, texPellet, 3, true)
 				end)
 
 				th.wait(10)

@@ -1,9 +1,13 @@
 #include "Game.h"
 
-#include "TitleScene.h"
+#include "Scenes/TitleScene.h"
 
 #include "misc.h"
 #include <fmt/format.h>
+
+#if TH_DEBUG
+#include "Scenes/GameScene.h"
+#endif
 
 namespace th
 {
@@ -26,13 +30,13 @@ namespace th
 						window.close();
 						break;
 					}
-					case sf::Event::KeyPressed: {
 #if TH_DEBUG
-						if (event.key.code == sf::Keyboard::F1) debug ^= true;
-#endif
-						if (!debug) break;
+					case sf::Event::KeyPressed: {
 						switch (event.key.code) {
-							// restart
+							case sf::Keyboard::F1: {
+								show_hitboxes ^= true;
+								break;
+							}
 							case sf::Keyboard::F2: {
 								next_scene = std::make_unique<TitleScene>(*this);
 								break;
@@ -49,13 +53,16 @@ namespace th
 						}
 						break;
 					}
+#endif
 				}
 			}
 
-			sf::Time t = clock.restart();
-			float delta = std::min(t.asSeconds(), 1.0f / 30.0f) * 60.0f;
+			float t = clock.restart().asSeconds();
+			t = std::min(t, 1.0f / 30.0f);
 
-			fps_sum += 1.0f / t.asSeconds();
+			float delta = t * 60.0f;
+
+			fps_sum += 1.0f / t;
 			fps_samples++;
 			fps_clock += delta;
 			if (fps_clock >= 60.0f) {
@@ -74,7 +81,21 @@ namespace th
 
 	void Game::Init()
 	{
-		window.create(sf::VideoMode(GAME_W, GAME_H), "th");
+		characters[0].name = "Reimu Hakurei";
+		characters[0].move_spd = 3.75f;
+		characters[0].focus_spd = 1.75f;
+		characters[0].radius = 2.0f;
+		characters[0].graze_radius = 16.0f;
+
+		{
+			sf::VideoMode m = sf::VideoMode::getDesktopMode();
+			int xscale = m.width / GAME_W;
+			int yscale = m.height / GAME_H;
+			int scale = std::min(xscale, yscale);
+			scale = std::max(scale, 1);
+			window.create(sf::VideoMode(GAME_W * scale, GAME_H * scale), "th");
+		}
+
 		window.setVerticalSyncEnabled(true);
 
 		game_surf.create(GAME_W, GAME_H);
@@ -82,6 +103,8 @@ namespace th
 		font.loadFromFile("Oranienbaum-Regular.ttf");
 
 		next_scene = std::make_unique<TitleScene>(*this);
+
+		sf::Listener::setGlobalVolume(0.0f);
 	}
 
 	void Game::Tick(float delta)
@@ -97,24 +120,48 @@ namespace th
 
 		fps_real = 1.0f / c.getElapsedTime().asSeconds();
 
-		if (debug) {
+#if TH_DEBUG
+		{
 			static sf::Text t;
 			t.setFont(font);
 			t.setCharacterSize(24);
-			t.setString(fmt::format(
+			std::string str = fmt::format(
 				"{:.2f}fps\n"
 				"update {:.2f}ms\n"
 				"render {:.2f}ms\n"
 				"time passed {:.2f}\n"
-				"frames passed {}\n",
+				"frames passed {}\n"
+				"delta {}",
 				fps_real,
 				update_took,
 				render_took,
 				time,
-				frame
-			));
+				frame,
+				delta
+			);
+			if (GameScene* s = dynamic_cast<GameScene*>(scene.get())) {
+				str += fmt::format(
+					"\n\n"
+					"bullets: {}\n"
+					"enemies: {}\n"
+					"player bullets: {}\n"
+					"pickups: {}\n"
+					"did physics: {}\n"
+					"did co: {}\n"
+					"co timer: {}",
+					s->bullets.size(),
+					s->enemies.size(),
+					s->player_bullets.size(),
+					s->pickups.size(),
+					s->did_physics,
+					s->did_co,
+					s->co_timer
+				);
+			}
+			t.setString(str);
 			window.draw(t);
 		}
+#endif
 
 		window.display();
 	}
@@ -124,6 +171,7 @@ namespace th
 		sf::Clock c;
 
 		input.Update();
+		audio.Update();
 
 		if (next_scene) {
 			scene = std::move(next_scene);

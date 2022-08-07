@@ -21,7 +21,7 @@
     <ClCompile Include="src\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\GameplayScene.cpp">
+    <ClCompile Include="src\Scenes\GameScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libsrc\format.cc">
@@ -30,16 +30,19 @@
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\InputManager.cpp">
+    <ClCompile Include="src\Input.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ErrorScene.cpp">
+    <ClCompile Include="src\Scenes\ErrorScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\TitleScene.cpp">
+    <ClCompile Include="src\Scenes\TitleScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Menu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,19 +50,19 @@
     <ClInclude Include="src\Game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\GameplayScene.h">
+    <ClInclude Include="src\Scenes\GameScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene.h">
+    <ClInclude Include="src\Scenes\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Objects.h">
+    <ClInclude Include="src\Scenes\Objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\InputManager.h">
+    <ClInclude Include="src\Input.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cpml.h">
@@ -68,16 +71,19 @@
     <ClInclude Include="src\misc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ErrorScene.h">
+    <ClInclude Include="src\Scenes\ErrorScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\TitleScene.h">
+    <ClInclude Include="src\Scenes\TitleScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\sol\config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Menu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

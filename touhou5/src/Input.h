@@ -20,14 +20,14 @@ namespace th
 		constexpr size_t Count = 7;
 	}
 
-	class InputManager
+	class Input
 	{
 	public:
 		void Update();
 
-		bool Check(input_state key) { return (state & key) != 0; }
-		bool CheckPressed(input_state key) { return (state_press & key) != 0; }
-		bool CheckReleased(input_state key) { return (state_release & key) != 0; }
+		bool Check(input_state key) const { return (state & key) != 0; }
+		bool CheckPressed(input_state key) const { return (state_press & key) != 0; }
+		bool CheckReleased(input_state key) const { return (state_release & key) != 0; }
 
 		input_state state = 0;
 		input_state state_press = 0;

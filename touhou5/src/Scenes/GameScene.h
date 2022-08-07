@@ -15,11 +15,12 @@ namespace th
 
 	constexpr float OFFSET = 64.0f;
 
-	class GameplayScene : public Scene
+	class GameScene : public Scene
 	{
 	public:
-		GameplayScene(Game& game, const std::filesystem::path& script_path)
-			: Scene(game), script_path(script_path)
+		GameScene(Game& game, const std::filesystem::path& script_path)
+			: Scene(game),
+			script_path(script_path)
 		{}
 
 		void Init() override;
@@ -60,15 +61,14 @@ namespace th
 		sf::Texture texBg;
 		sf::Texture texHitbox;
 		std::vector<std::unique_ptr<sf::Texture>> loaded_textures;
-
-		Character characters[2] = {};
+		sf::SoundBuffer sndReimuShoot;
 
 		instance_id next_id = 0;
 		Player player = {};
 		std::optional<Boss> boss;
 		std::vector<Bullet> bullets;
-		std::vector<Bullet> player_bullets;
+		std::vector<PlayerBullet> player_bullets;
 		std::vector<Enemy> enemies;
-		std::vector<Powerup> powerups;
+		std::vector<Pickup> pickups;
 	};
 }

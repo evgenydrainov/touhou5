@@ -10,8 +10,7 @@ namespace th
 	}
 
 	void ErrorScene::Update(float delta)
-	{
-	}
+	{}
 
 	void ErrorScene::Render(sf::RenderTarget& target, float delta)
 	{

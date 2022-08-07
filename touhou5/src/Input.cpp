@@ -1,8 +1,8 @@
-#include "InputManager.h"
+#include "Input.h"
 
 namespace th
 {
-	void InputManager::Update()
+	void Input::Update()
 	{
 		input_state buffer = state;
 		state = 0;

@@ -7,16 +7,6 @@ namespace th
 {
 	typedef uint32_t instance_id;
 
-	struct Character
-	{
-		std::string name;
-		float move_spd;
-		float focus_spd;
-		float radius;
-		float graze_radius;
-		sf::Texture* texture;
-	};
-
 	struct Reimu
 	{
 		float fire_timer;
@@ -31,18 +21,46 @@ namespace th
 		float y;
 		float hsp;
 		float vsp;
-		size_t character_id;
+		sf::Texture* texture;
+
 		int score;
 		int lives;
 		int bombs;
 		int power;
 		int graze;
 		int points;
+
 		bool is_focused;
+
+		int character;
 		union
 		{
 			Reimu reimu;
 			Marisa marisa;
+		};
+	};
+
+	constexpr int PLAYER_BULLET_REIMU_CARD = 0;
+
+	struct ReimuCard
+	{
+		float rotation;
+	};
+
+	struct PlayerBullet
+	{
+		float x;
+		float y;
+		float spd;
+		float dir;
+		float acc;
+		sf::Texture* texture;
+		float radius;
+		float dmg;
+		int type;
+		union
+		{
+			ReimuCard reimu_card;
 		};
 	};
 
@@ -56,7 +74,6 @@ namespace th
 		float acc;
 		float radius;
 		sf::Texture* texture;
-		float dmg;
 		bool rotate;
 	};
 
@@ -100,13 +117,10 @@ namespace th
 		size_t phase_index;
 	};
 
-	enum class PowerupType
-	{
-		Points,
-		Power
-	};
+	constexpr int PICKUP_POINTS = 0;
+	constexpr int PICKUP_POWER = 1;
 
-	struct Powerup
+	struct Pickup
 	{
 		float x;
 		float y;
@@ -114,6 +128,6 @@ namespace th
 		float grv;
 		float max_vsp;
 		float radius;
-		PowerupType type;
+		int type;
 	};
 }
