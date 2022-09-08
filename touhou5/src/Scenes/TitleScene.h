@@ -1,33 +1,28 @@
 #pragma once
 
-#include "Scene.h"
-#include "Menu.h"
+#include <raylib.h>
+#include <vector>
+#include <string>
 
 namespace th
 {
-	class ScriptButton : public MenuButton
+	struct Game;
+
+	struct TitleScene
 	{
-	public:
-		ScriptButton(Game& game, const std::filesystem::path& path);
+		Game& game;
 
-		void OnPressed() override;
+		std::vector<std::string> menu_labels = {"Play", "Options", "Quit to Desktop"};
+		int menu_cursor = 0;
 
-		std::filesystem::path path;
-	};
+		TitleScene(const TitleScene&) = delete;
+		TitleScene& operator=(const TitleScene&) = delete;
+		TitleScene(TitleScene&&) = delete;
+		TitleScene& operator=(TitleScene&&) = delete;
 
-	class TitleScene : public Scene
-	{
-	public:
-		TitleScene(Game& game) :
-			Scene(game),
-			menu(game)
-		{}
+		TitleScene(Game& game);
 
-		void Init() override;
-		void Update(float delta) override;
-		void Render(sf::RenderTarget& target, float delta) override;
-
-		Menu menu;
-		sf::Text label;
+		void update(float delta);
+		void draw(RenderTexture target, float delta);
 	};
 }

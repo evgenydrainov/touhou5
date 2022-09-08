@@ -1,22 +1,26 @@
 #pragma once
 
-#include "Scene.h"
+#include <raylib.h>
+#include <string>
 
 namespace th
 {
-	class ErrorScene : public Scene
+	struct Game;
+
+	struct ErrorScene
 	{
-	public:
-		ErrorScene(Game& game, const std::string& what) :
-			Scene(game),
-			what(what)
-		{}
+		Game& game;
 
-		void Init() override;
-		void Update(float delta) override;
-		void Render(sf::RenderTarget& target, float delta) override;
+		std::string msg;
 
-		std::string what;
-		sf::Text text;
+		ErrorScene(const ErrorScene&) = delete;
+		ErrorScene& operator=(const ErrorScene&) = delete;
+		ErrorScene(ErrorScene&&) = delete;
+		ErrorScene& operator=(ErrorScene&&) = delete;
+
+		ErrorScene(Game& game);
+
+		void update(float delta);
+		void draw(RenderTexture2D target, float delta);
 	};
 }

@@ -1,58 +1,72 @@
 #include "TitleScene.h"
 
-#include "GameScene.h"
+#include "Game.h"
+
+#include "cpml.h"
 
 namespace th
 {
-	ScriptButton::ScriptButton(Game& game, const std::filesystem::path& path) :
-		MenuButton(game),
-		path(path)
+	TitleScene::TitleScene(Game& game) : game(game)
+	{}
+
+	void TitleScene::update(float delta)
 	{
-		label = path.filename().string();
-	}
-
-	void ScriptButton::OnPressed()
-	{
-		game.next_scene = std::make_unique<GameScene>(game, path);
-	}
-
-	void TitleScene::Init()
-	{
-		std::error_code err;
-		for (const auto& e : std::filesystem::directory_iterator(game.scripts_path, err)) {
-			if (!e.is_directory()) continue;
-			if (e.path().filename().string()[0] == '.') continue;
-			menu.entities.emplace_back(std::make_unique<ScriptButton>(game, e.path()));
-		}
-
-		label.setFont(game.font);
-		label.setCharacterSize(16);
-		label.setString("Touhou 69\nEmbodiment of Sussy Baka\n\nPress Z to Start");
-		label.setPosition(100.0f, 100.0f);
-	}
-
-	void TitleScene::Update(float delta)
-	{
-		menu.Update();
-	}
-
-	void TitleScene::Render(sf::RenderTarget& target, float delta)
-	{
-		target.draw(label);
-
-		float x = 100.0f;
-		float y = 212.0f;
-		for (size_t i = 0; i < menu.entities.size(); i++) {
-			sf::Text t;
-			t.setFont(game.font);
-			t.setCharacterSize(16);
-			t.setString(menu.entities[i]->label);
-			t.setPosition(x, y);
-			y += 16.0f;
-			if (i == menu.cursor) {
-				t.setFillColor(sf::Color::Yellow);
+		if (IsKeyPressed(KEY_X)) {
+			if (menu_cursor != menu_labels.size() - 1) {
+				menu_cursor = menu_labels.size() - 1;
+				PlaySound(game.sndCancel);
 			}
-			target.draw(t);
 		}
+		menu_cursor += IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+		menu_cursor = cpml::emod(menu_cursor, menu_labels.size());
+		if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)) {
+			PlaySound(game.sndSelect);
+		}
+		if (IsKeyPressed(KEY_Z)) {
+			switch (menu_cursor) {
+				case 0: game.next_scene = SCRIPT_SELECT_SCENE; break;
+				case 1: game.next_scene = OPTIONS_SCENE;  break;
+				case 2: game.quit = true; break;
+			}
+			if (menu_cursor == 2) {
+				PlaySound(game.sndCancel);
+			} else {
+				PlaySound(game.sndOk);
+			}
+		}
+	}
+
+	void TitleScene::draw(RenderTexture target, float delta)
+	{
+		BeginTextureMode(target);
+		{
+			ClearBackground(BLACK);
+
+			for (int i = 0; i < menu_labels.size(); i++) {
+				DrawText(
+					menu_labels[i].c_str(),
+					GAME_W / 3 * 2 - i * 8, GAME_H / 2 + i * 32,
+					20, (i == menu_cursor) ? YELLOW : WHITE
+				);
+			}
+
+			DrawText(
+				"F4 - Fullscreen\n\n"
+				"F1 - Show Hitboxes\n"
+				"F2 - Restart\n"
+				"F3 - Debug Overlay\n"
+				"F5 - Advance Single Frame\n"
+				"F6 - Resume Game Normally\n"
+				"F - Fast Forward\n"
+				"G - God Mode\n\n"
+				"S - Skip Boss Phase\n"
+				"L - Get 8 Lives\n"
+				"B - Get 8 Bombs\n"
+				"P - Get Max Power",
+				10, 10,
+				10, RED
+			);
+		}
+		EndTextureMode();
 	}
 }

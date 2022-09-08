@@ -1,10 +1,16 @@
 #pragma once
 
-#include "Input.h"
-#include "Audio.h"
-#include <SFML/Graphics.hpp>
-#include <filesystem>
+#include "Scenes/TitleScene.h"
+#include "Scenes/ScriptSelectScene.h"
+#include "Scenes/ErrorScene.h"
+#include "Scenes/GameScene.h"
+#include "Scenes/OptionsScene.h"
 
+#include <raylibx.h>
+#include <filesystem>
+#include <variant>
+
+#define GAME_VERSION "0.0.1"
 #define TH_DEBUG 1
 
 namespace th
@@ -12,10 +18,20 @@ namespace th
 	constexpr int GAME_W = 640;
 	constexpr int GAME_H = 480;
 
-	constexpr int CHARACTER_REIMU = 0;
-	constexpr int CHARACTER_MARISA = 1;
+	enum Characters
+	{
+		CHARACTER_REIMU,
+		CHARACTER_MARISA
+	};
 
-	class Scene;
+	enum Scenes
+	{
+		TITLE_SCENE = 1,
+		SCRIPT_SELECT_SCENE,
+		ERROR_SCENE,
+		GAME_SCENE,
+		OPTIONS_SCENE
+	};
 
 	struct Character
 	{
@@ -24,40 +40,59 @@ namespace th
 		float focus_spd;
 		float radius;
 		float graze_radius;
+		float deathbomb_time;
+		int starting_bombs;
+		void (Stage::*shot_type)(float);
+		void (Stage::*bomb)();
 	};
 
-	class Game
+	struct Options
 	{
-	public:
+		int starting_lives = 3;
+		float master_volume = 0.5f;
+	};
+
+	struct Game
+	{
+		Character characters[2] = {};
+		std::filesystem::path scripts_path = "Scripts";
+
+		// resources
+		RenderTexture2D game_surf = {};
+		RenderTexture2D up_surf = {};
+		Sound sndSelect = {};
+		Sound sndOk = {};
+		Sound sndCancel = {};
+
+		bool quit = false;
+		Options options = {};
+		float time = 0;
+		int window_mode = 0;
+		bool show_hitboxes = false;
+		bool god_mode = false;
+		bool debug_overlay = false;
+		bool frame_advance = false;
+		bool skip_frame = false;
+
+		std::filesystem::path script_path;
+		std::string error_msg;
+		int character_id = 0;
+
+		std::variant<std::monostate, TitleScene, ScriptSelectScene, ErrorScene, GameScene, OptionsScene> scene;
+		int next_scene = TITLE_SCENE;
+
+		Game(const Game&) = delete;
+		Game& operator=(const Game&) = delete;
+		Game(Game&&) = delete;
+		Game& operator=(Game&&) = delete;
+
 		Game();
 		~Game();
 
-		void Run();
-		void Init();
-		void Tick(float delta);
-		void Update(float delta);
-		void Render(sf::RenderTarget& target, float delta);
-
-		Input input;
-		Audio audio;
-		std::filesystem::path scripts_path = "Scripts";
-		sf::RenderWindow window;
-		sf::RenderTexture game_surf;
-		sf::Font font;
-		std::unique_ptr<Scene> scene;
-		std::unique_ptr<Scene> next_scene;
-		Character characters[2] = {};
-		float time = 0.0f;
-		int frame = 0;
-		float fps = 0.0f;
-		float fps_real = 0.0f;
-		float update_took = 0.0f;
-		float render_took = 0.0f;
-		float fps_sum = 0.0f;
-		int fps_samples = 0;
-		float fps_clock = 0.0f;
-		bool frame_advance = false;
-		bool do_frame = false;
-		bool show_hitboxes = false;
+		void run();
+		void update(float delta);
+		void draw(float delta);
+		void set_window_mode(int mode);
+		void set_master_volume(float vol);
 	};
 }

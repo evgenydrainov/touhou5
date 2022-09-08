@@ -30,19 +30,19 @@
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Input.cpp">
+    <ClCompile Include="src\Scenes\ErrorScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scenes\ErrorScene.cpp">
+    <ClCompile Include="src\Scenes\ScriptSelectScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Scenes\TitleScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Menu.cpp">
+    <ClCompile Include="src\Stage\Stage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Audio.cpp">
+    <ClCompile Include="src\Scenes\OptionsScene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,34 +56,31 @@
     <ClInclude Include="src\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scenes\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Scenes\Objects.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Input.h">
+    <ClInclude Include="src\Stage\Objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\cpml.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\misc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Scenes\ErrorScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scenes\TitleScene.h">
+    <ClInclude Include="src\Scenes\ScriptSelectScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\sol\config.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Menu.h">
+    <ClInclude Include="src\raylibx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Audio.h">
+    <ClInclude Include="src\Scenes\TitleScene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Stage\Stage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Scenes\OptionsScene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

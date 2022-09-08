@@ -70,4 +70,13 @@ namespace cpml
 	{
 		return len * -dsin(dir);
 	}
+
+	inline float angle_wrap(float deg)
+	{
+		deg = fmodf(deg, 360.0f);
+		if (deg < 0.0f) {
+			deg += 360.0f;
+		}
+		return deg;
+	}
 }

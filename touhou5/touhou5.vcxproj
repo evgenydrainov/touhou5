@@ -94,19 +94,20 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LUA_BUILD_AS_DLL;USE_LIBTYPE_SHARED;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\;$(SolutionDir)lua\src\;$(SolutionDir)raylib\src\</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\_bin\$(Configuration)-$(Platform)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -115,14 +116,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SFML_STATIC;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LUA_BUILD_AS_DLL;USE_LIBTYPE_SHARED;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\;$(SolutionDir)lua\src\;$(SolutionDir)raylib\src\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -130,26 +132,28 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\_bin\$(Configuration)-$(Platform)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;sfml-audio-s.lib;sfml-graphics-s.lib;sfml-main.lib;sfml-network-s.lib;sfml-system-s.lib;sfml-window-s.lib;OpenGL32.lib;winmm.lib;flac.lib;freetype.lib;ogg.lib;openal32.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LUA_BUILD_AS_DLL;USE_LIBTYPE_SHARED;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\;$(SolutionDir)lua\src\;$(SolutionDir)raylib\src\</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\_bin\$(Configuration)-$(Platform)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -158,14 +162,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>SFML_STATIC;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LUA_BUILD_AS_DLL;USE_LIBTYPE_SHARED;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\include\;$(ProjectDir)src\;$(SolutionDir)lua\src\;$(SolutionDir)raylib\src\</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <DisableSpecificWarnings>26812</DisableSpecificWarnings>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -173,40 +178,48 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\_bin\$(Configuration)-$(Platform)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>lua.lib;sfml-audio-s.lib;sfml-graphics-s.lib;sfml-main.lib;sfml-network-s.lib;sfml-system-s.lib;sfml-window-s.lib;OpenGL32.lib;winmm.lib;flac.lib;freetype.lib;ogg.lib;openal32.lib;vorbis.lib;vorbisenc.lib;vorbisfile.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Audio.cpp" />
     <ClCompile Include="src\Scenes\ErrorScene.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Scenes\GameScene.cpp" />
-    <ClCompile Include="src\Input.cpp" />
     <ClCompile Include="libsrc\format.cc" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\Menu.cpp" />
+    <ClCompile Include="src\Scenes\OptionsScene.cpp" />
+    <ClCompile Include="src\Scenes\TitleScene.cpp" />
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\Scenes\TitleScene.cpp" />
+    <ClCompile Include="src\Scenes\ScriptSelectScene.cpp" />
+    <ClCompile Include="src\Stage\Stage.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Audio.h" />
     <ClInclude Include="src\cpml.h" />
+    <ClInclude Include="src\raylibx.h" />
     <ClInclude Include="src\Scenes\ErrorScene.h" />
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Scenes\GameScene.h" />
-    <ClInclude Include="src\Input.h" />
-    <ClInclude Include="src\Menu.h" />
-    <ClInclude Include="src\misc.h" />
-    <ClInclude Include="src\Scenes\Objects.h" />
-    <ClInclude Include="src\Scenes\Scene.h" />
+    <ClInclude Include="src\Scenes\OptionsScene.h" />
+    <ClInclude Include="src\Stage\Objects.h" />
+    <ClInclude Include="src\Scenes\TitleScene.h" />
     <ClInclude Include="src\sol\config.hpp" />
     <ClInclude Include="src\stdafx.h" />
-    <ClInclude Include="src\Scenes\TitleScene.h" />
+    <ClInclude Include="src\Scenes\ScriptSelectScene.h" />
+    <ClInclude Include="src\Stage\Stage.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\lua\lua.vcxproj">
+      <Project>{cb3d8db7-4d51-479e-ba2a-83f017ec6545}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\raylib\raylib.vcxproj">
+      <Project>{835f8348-e079-4587-9e1b-89e71cbd695d}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

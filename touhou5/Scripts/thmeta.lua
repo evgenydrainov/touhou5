@@ -1,11 +1,15 @@
 ---@meta
 
 ---@class texture_handle
+---@class music_handle
 ---@class instance_id
 ---@class array<T>: {[number]: T}
----@class phase: {HP: number, Time: number, Script: fun()}
----@class boss: {Name: string, Texture: texture_handle, Phases: array<phase>}
----@class enemy: {HP: number, Texture: texture_handle, Script: fun()}
+---@class phase: {HP: number, Time: number, Type: integer, Script: fun()}
+---@class boss: {Name: string, Texture: texture_handle, Phases: array<phase>, Healthbars: array<array<integer>>, Music: music_handle}
+---@class enemy: {HP: number, Texture: texture_handle, Music: music_handle, Script: fun()}
+
+PHASE_NONSPELL  = 0
+PHASE_SPELLCARD = 1
 
 ---@param x number
 ---@param y number
@@ -19,6 +23,7 @@
 function Shoot(x, y, spd, dir, acc, texture, radius, rotate) end
 
 ---@param desc boss
+---@return instance_id
 function CreateBoss(desc) end
 
 ---@param x number
@@ -30,6 +35,10 @@ function CreateEnemy(x, y, desc) end
 ---@param fname string
 ---@return texture_handle
 function LoadTexture(fname) end
+
+--
+-- bullet
+--
 
 ---@param id instance_id
 ---@return number
@@ -56,6 +65,12 @@ function BltGetAcc(id) end
 function BltGetRadius(id) end
 
 ---@param id instance_id
+---@return number
+function BltGetLifetime(id) end
+
+
+
+---@param id instance_id
 ---@param x number
 function BltSetX(id, x) end
 
@@ -78,6 +93,10 @@ function BltSetAcc(id, acc) end
 ---@param id instance_id
 ---@param radius number
 function BltSetRadius(id, radius) end
+
+--
+-- enemy
+--
 
 ---@param id instance_id
 ---@return number
@@ -127,44 +146,84 @@ function EnmSetAcc(id, acc) end
 ---@param radius number
 function EnmSetRadius(id, radius) end
 
+--
+-- player
+--
+
 ---@return number
 function PlrGetX() end
 
 ---@return number
 function PlrGetY() end
 
----@return number
-function BossGetX() end
+--
+-- boss
+--
 
+---@param id instance_id
 ---@return number
-function BossGetY() end
+function BossGetX(id) end
 
+---@param id instance_id
 ---@return number
-function BossGetSpd() end
+function BossGetY(id) end
 
+---@param id instance_id
 ---@return number
-function BossGetDir() end
+function BossGetSpd(id) end
 
+---@param id instance_id
 ---@return number
-function BossGetAcc() end
+function BossGetDir(id) end
 
+---@param id instance_id
 ---@return number
-function BossGetRadius() end
+function BossGetAcc(id) end
 
+---@param id instance_id
+---@return number
+function BossGetRadius(id) end
+
+---@param id instance_id
+---@return integer
+function BossGetPhase(id) end
+
+
+
+---@param id instance_id
 ---@param x number
-function BossSetX(x) end
+function BossSetX(id, x) end
 
+---@param id instance_id
 ---@param y number
-function BossSetY(y) end
+function BossSetY(id, y) end
 
+---@param id instance_id
 ---@param spd number
-function BossSetSpd(spd) end
+function BossSetSpd(id, spd) end
 
+---@param id instance_id
 ---@param dir number
-function BossSetDir(dir) end
+function BossSetDir(id, dir) end
 
+---@param id instance_id
 ---@param acc number
-function BossSetAcc(acc) end
+function BossSetAcc(id, acc) end
 
+---@param id instance_id
 ---@param radius number
-function BossSetRadius(radius) end
+function BossSetRadius(id, radius) end
+
+
+
+---@param id instance_id
+---@return boolean
+function BltExists(id) end
+
+---@param id instance_id
+---@return boolean
+function EnmExists(id) end
+
+---@param id instance_id
+---@return boolean
+function BossExists(id) end

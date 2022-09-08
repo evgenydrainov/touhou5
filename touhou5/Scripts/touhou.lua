@@ -87,15 +87,16 @@ function th.wait(t)
 	end
 end
 
+---@param id instance_id
 ---@param spd number
 ---@param acc number
 ---@param texture texture_handle
 ---@param radius number
 ---@param rotate boolean
 ---@return instance_id
-function th.BossShootAtPlr(spd, acc, texture, radius, rotate)
-	local x = BossGetX()
-	local y = BossGetY()
+function th.BossShootAtPlr(id, spd, acc, texture, radius, rotate)
+	local x = BossGetX(id)
+	local y = BossGetY(id)
 	local dir = th.point_direction(x, y, PlrGetX(), PlrGetY())
 	return Shoot(x, y, spd, dir, acc, texture, radius, rotate)
 end

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Objects.h"
-#include "Scene.h"
+#include "Stage/Stage.h"
+
+#include <raylib.h>
 
 namespace th
 {
@@ -10,65 +11,70 @@ namespace th
 	constexpr int PLAY_AREA_X = 32;
 	constexpr int PLAY_AREA_Y = 16;
 
-	constexpr float PHYSICS_DELTA = 0.2f;
-	constexpr float CO_DELTA = 1.0f;
+	constexpr float PLAYER_STARTING_X = float(PLAY_AREA_W) / 2.0f;
+	constexpr float PLAYER_STARTING_Y = 384.0f;
 
-	constexpr float OFFSET = 64.0f;
+	struct Game;
 
-	class GameScene : public Scene
+	struct Stats
 	{
-	public:
-		GameScene(Game& game, const std::filesystem::path& script_path)
-			: Scene(game),
-			script_path(script_path)
-		{}
+		int score;
+		int lives;
+		int bombs;
+		int power;
+		int graze;
+		int points;
+	};
 
-		void Init() override;
-		void Update(float delta) override;
-		void Render(sf::RenderTarget& target, float delta) override;
+	struct GameScene
+	{
+		enum class State { Playing, Paused, Lost };
 
-		void UpdatePlayer(float delta);
-		void DoPhysics(float delta);
-		void PhysicsStep(float delta);
-		bool UpdateBoss(Boss& boss, float delta);
-		void DoCoro(float delta);
-		bool UpdateEnemy(Enemy& e, float delta);
+		Game& game;
 
-		void Register();
-		void BossStartPhase(Boss& b);
-		bool BossEndPhase(Boss& b);
-		void CheckResult(sol::protected_function_result pres);
-		void Error(const std::string& what);
-		bool InBounds(float x, float y);
-
-		Bullet* FindBullet(instance_id id);
-		Enemy* FindEnemy(instance_id id);
-
+		Stats stats = {};
 		int hiscore = 0;
-		float co_timer = 0.0f;
-		int did_co = 0;
-		int did_physics = 0;
+		int continues = 0;
 
-		std::filesystem::path script_path;
-		sf::RenderTexture play_area;
+		State state = State::Playing;
+		std::optional<Stage> stage;
+		std::vector<std::string> menu_labels;
+		int menu_cursor = 0;
 
-		sol::state lua;
-		sol::thread co_runner;
-		sol::coroutine co;
+		// resources
+		RenderTexture2D play_area = {};
+		RenderTexture2D pause_surf = {};
+		Texture2D texReimu = {};
+		Texture2D texReimuCard = {};
+		Texture2D texBg = {};
+		Texture2D texHitbox = {};
+		Sound sndGraze = {};
+		Sound sndPause = {};
+		Sound sndReimuShoot = {};
+		Sound sndEnemyHit = {};
+		Sound sndPichuun = {};
+		Sound sndEnemyShoot = {};
+		Sound sndPowerUp = {};
+		Sound snd1Up = {};
+		Music music = {};
 
-		sf::Texture texReimu;
-		sf::Texture texReimuCard;
-		sf::Texture texBg;
-		sf::Texture texHitbox;
-		std::vector<std::unique_ptr<sf::Texture>> loaded_textures;
-		sf::SoundBuffer sndReimuShoot;
+		GameScene(const GameScene&) = delete;
+		GameScene& operator=(const GameScene&) = delete;
+		GameScene(GameScene&&) = delete;
+		GameScene& operator=(GameScene&&) = delete;
 
-		instance_id next_id = 0;
-		Player player = {};
-		std::optional<Boss> boss;
-		std::vector<Bullet> bullets;
-		std::vector<PlayerBullet> player_bullets;
-		std::vector<Enemy> enemies;
-		std::vector<Pickup> pickups;
+		GameScene(Game& game);
+		~GameScene();
+
+		void update(float delta);
+		void draw(RenderTexture2D target, float delta);
+
+		void reset_stats();
+		void pause();
+		void resume();
+		void game_over();
+		void use_continue();
+		void quit_to_title_screen();
+		void play_music(const std::string& fname);
 	};
 }

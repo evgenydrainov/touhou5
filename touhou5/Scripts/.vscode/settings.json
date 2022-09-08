@@ -1,5 +1,7 @@
 {
     "Lua.diagnostics.disable": [
-        "redefined-local"
+        "redefined-local",
+        "unused-function",
+        "empty-block"
     ]
 }
