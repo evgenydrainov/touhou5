@@ -3,7 +3,6 @@
 
 RenderTexture2D LoadStrippedRenderTexture(int width, int height);
 void DrawTextureCentered(Texture2D t, float x, float y, float xscale = 1.0f, float yscale = 1.0f, float rotation = 0.0f, Color tint = WHITE);
-void CenterWindow(int m);
 
 // Draw text using font inside rectangle limits with support for text selection
 void DrawTextBoxedSelectable(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);
@@ -45,17 +44,6 @@ void DrawTextureCentered(Texture2D t, float x, float y, float xscale, float ysca
 	Rectangle dest = {x, y, src.width * xscale, src.height * yscale};
 	Vector2 origin = {dest.width / 2.0f, dest.height / 2.0f};
 	DrawTexturePro(t, src, dest, origin, rotation, tint);
-}
-
-void CenterWindow(int m)
-{
-	int x = (int)GetMonitorPosition(m).x;
-	int y = (int)GetMonitorPosition(m).y;
-	x += GetMonitorWidth(m) / 2;
-	y += GetMonitorHeight(m) / 2;
-	x -= GetScreenWidth() / 2;
-	y -= GetScreenHeight() / 2;
-	SetWindowPosition(x, y);
 }
 
 // Draw text using font inside rectangle limits with support for text selection

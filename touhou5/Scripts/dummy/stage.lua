@@ -38,7 +38,6 @@ local Dummy = {
 }
 
 local Stage = {
-	Music = "weed.mod",
 	Script = function()
 		th.wait(60)
 

@@ -342,9 +342,6 @@ typedef struct {
 } InputEventWorker;
 #endif
 
-typedef struct { int x; int y; } Point;
-typedef struct { unsigned int width; unsigned int height; } Size;
-
 // Core global state context data
 typedef struct CoreData {
     struct {
@@ -1020,7 +1017,7 @@ bool WindowShouldClose(void)
     if (CORE.Window.ready)
     {
         // While window minimized, stop loop execution
-        while (IsWindowState(FLAG_WINDOW_MINIMIZED) && !IsWindowState(FLAG_WINDOW_ALWAYS_RUN)) glfwWaitEvents();
+        while ((IsWindowState(FLAG_WINDOW_MINIMIZED) || IsWindowState(FLAG_WINDOW_UNFOCUSED)) && !IsWindowState(FLAG_WINDOW_ALWAYS_RUN)) glfwWaitEvents();
 
         CORE.Window.shouldClose = glfwWindowShouldClose(CORE.Window.handle);
 
@@ -1137,7 +1134,11 @@ void ToggleFullscreen(void)
         CORE.Window.fullscreen = true;          // Toggle fullscreen flag
         CORE.Window.flags |= FLAG_FULLSCREEN_MODE;
 
-        glfwSetWindowMonitor(CORE.Window.handle, monitor, 0, 0, CORE.Window.screen.width, CORE.Window.screen.height, GLFW_DONT_CARE);
+        const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+
+        //printf("in glfwSetWindowMonitor\n");
+        glfwSetWindowMonitor(CORE.Window.handle, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+        //printf("out glfwSetWindowMonitor\n");
     }
     else
     {
@@ -1492,30 +1493,41 @@ void SetWindowPosition(int x, int y)
 #endif
 }
 
-// Set monitor for the current window (fullscreen mode)
-void SetWindowMonitor(int monitor)
+void SetWindowMonitor(int monitor, int x, int y, int width, int height, int refreshRate)
 {
 #if defined(PLATFORM_DESKTOP)
     int monitorCount = 0;
     GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
 
-    if ((monitor >= 0) && (monitor < monitorCount))
+    if (((monitor >= 0) && (monitor < monitorCount)) || monitor == -1)
     {
-        TRACELOG(LOG_INFO, "GLFW: Selected fullscreen monitor: [%i] %s", monitor, glfwGetMonitorName(monitors[monitor]));
+        //TRACELOG(LOG_INFO, "GLFW: Selected fullscreen monitor: [%i] %s", monitor, glfwGetMonitorName(monitors[monitor]));
+        //
+        //const GLFWvidmode *mode = glfwGetVideoMode(monitors[monitor]);
+        //glfwSetWindowMonitor(CORE.Window.handle, monitors[monitor], 0, 0, mode->width, mode->height, mode->refreshRate);
 
-        const GLFWvidmode *mode = glfwGetVideoMode(monitors[monitor]);
-        glfwSetWindowMonitor(CORE.Window.handle, monitors[monitor], 0, 0, mode->width, mode->height, mode->refreshRate);
+        if (monitor == -1)
+        {
+            CORE.Window.fullscreen = false;
+            CORE.Window.flags &= ~FLAG_FULLSCREEN_MODE;
+        }
+        else
+        {
+            CORE.Window.fullscreen = true;
+            CORE.Window.flags |= FLAG_FULLSCREEN_MODE;
+        }
+
+        glfwSetWindowMonitor(CORE.Window.handle, (monitor == -1)? NULL : monitors[monitor], x, y, width, height, refreshRate);
     }
     else TRACELOG(LOG_WARNING, "GLFW: Failed to find selected monitor");
 #endif
 }
 
-// Set window minimum dimensions (FLAG_WINDOW_RESIZABLE)
-void SetWindowMinSize(int width, int height)
+void SetWindowSizeLimits(int minWidth, int minHeight, int maxWidth, int maxHeight)
 {
 #if defined(PLATFORM_DESKTOP)
-    const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    glfwSetWindowSizeLimits(CORE.Window.handle, width, height, mode->width, mode->height);
+    //const GLFWvidmode *mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    glfwSetWindowSizeLimits(CORE.Window.handle, minWidth, minHeight, maxWidth, maxHeight);
 #endif
 }
 
@@ -1620,6 +1632,9 @@ int GetCurrentMonitor(void)
 
         glfwGetWindowPos(CORE.Window.handle, &x, &y);
 
+        int best_overlap = 0;
+        int best_monitor = 0;
+
         for (int i = 0; i < monitorCount; i++)
         {
             int mx = 0;
@@ -1630,9 +1645,34 @@ int GetCurrentMonitor(void)
 
             monitor = monitors[i];
             glfwGetMonitorWorkarea(monitor, &mx, &my, &width, &height);
-            if (x >= mx && x <= (mx + width) && y >= my && y <= (my + height))
-                return i;
+            //if (x >= mx && x <= (mx + width) && y >= my && y <= (my + height))
+            //    return i;
+
+            int x1 = x;
+            if (x1 < mx) x1 = mx;
+            if (x1 > mx + width) x1 = mx + width;
+
+            int x2 = x + CORE.Window.screen.width;
+            if (x2 < mx) x2 = mx;
+            if (x2 > mx + width) x2 = mx + width;
+
+            int y1 = y;
+            if (y1 < my) y1 = my;
+            if (y1 > my + height) y1 = my + height;
+
+            int y2 = y + CORE.Window.screen.height;
+            if (y2 < my) y2 = my;
+            if (y2 > my + height) y2 = my + height;
+
+            int overlap = (x2 - x1) * (y2 - y1);
+
+            if (overlap > best_overlap)
+            {
+                best_overlap = overlap;
+                best_monitor = i;
+            }
         }
+        return best_monitor;
     }
     return 0;
 #else
@@ -1641,7 +1681,7 @@ int GetCurrentMonitor(void)
 }
 
 // Get selected monitor width
-Vector2 GetMonitorPosition(int monitor)
+Point GetMonitorPosition(int monitor)
 {
 #if defined(PLATFORM_DESKTOP)
     int monitorCount;
@@ -1652,11 +1692,11 @@ Vector2 GetMonitorPosition(int monitor)
         int x, y;
         glfwGetMonitorPos(monitors[monitor], &x, &y);
 
-        return (Vector2){ (float)x, (float)y };
+        return (Point){ x, y };
     }
     else TRACELOG(LOG_WARNING, "GLFW: Failed to find selected monitor");
 #endif
-    return (Vector2){ 0, 0 };
+    return (Point){ 0, 0 };
 }
 
 // Get selected monitor width (max available by monitor)
@@ -1668,12 +1708,15 @@ int GetMonitorWidth(int monitor)
 
     if ((monitor >= 0) && (monitor < monitorCount))
     {
-        int count = 0;
-        const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
+        //int count = 0;
+        //const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
+        //
+        //// We return the maximum resolution available, the last one in the modes array
+        //if (count > 0) return modes[count - 1].width;
+        //else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
 
-        // We return the maximum resolution available, the last one in the modes array
-        if (count > 0) return modes[count - 1].width;
-        else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
+        const GLFWvidmode *mode = glfwGetVideoMode(monitors[monitor]);
+        return mode->width;
     }
     else TRACELOG(LOG_WARNING, "GLFW: Failed to find selected monitor");
 #endif
@@ -1689,12 +1732,15 @@ int GetMonitorHeight(int monitor)
 
     if ((monitor >= 0) && (monitor < monitorCount))
     {
-        int count = 0;
-        const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
+        //int count = 0;
+        //const GLFWvidmode *modes = glfwGetVideoModes(monitors[monitor], &count);
+        //
+        //// We return the maximum resolution available, the last one in the modes array
+        //if (count > 0) return modes[count - 1].height;
+        //else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
 
-        // We return the maximum resolution available, the last one in the modes array
-        if (count > 0) return modes[count - 1].height;
-        else TRACELOG(LOG_WARNING, "GLFW: Failed to find video mode for selected monitor");
+        const GLFWvidmode *mode = glfwGetVideoMode(monitors[monitor]);
+        return mode->height;
     }
     else TRACELOG(LOG_WARNING, "GLFW: Failed to find selected monitor");
 #endif
@@ -1760,14 +1806,14 @@ int GetMonitorRefreshRate(int monitor)
 }
 
 // Get window position XY on monitor
-Vector2 GetWindowPosition(void)
+Point GetWindowPosition(void)
 {
     int x = 0;
     int y = 0;
 #if defined(PLATFORM_DESKTOP)
     glfwGetWindowPos(CORE.Window.handle, &x, &y);
 #endif
-    return (Vector2){ (float)x, (float)y };
+    return (Point){ x, y };
 }
 
 // Get window scale DPI factor
@@ -1776,29 +1822,34 @@ Vector2 GetWindowScaleDPI(void)
     Vector2 scale = { 1.0f, 1.0f };
 
 #if defined(PLATFORM_DESKTOP)
-    float xdpi = 1.0;
-    float ydpi = 1.0;
-    Vector2 windowPos = GetWindowPosition();
+    //float xdpi = 1.0;
+    //float ydpi = 1.0;
+    //Vector2 windowPos = GetWindowPosition();
+    //
+    //int monitorCount = 0;
+    //GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
+    //
+    //// Check window monitor
+    //for (int i = 0; i < monitorCount; i++)
+    //{
+    //    glfwGetMonitorContentScale(monitors[i], &xdpi, &ydpi);
+    //
+    //    int xpos, ypos, width, height;
+    //    glfwGetMonitorWorkarea(monitors[i], &xpos, &ypos, &width, &height);
+    //
+    //    if ((windowPos.x >= xpos) && (windowPos.x < xpos + width) &&
+    //        (windowPos.y >= ypos) && (windowPos.y < ypos + height))
+    //    {
+    //        scale.x = xdpi;
+    //        scale.y = ydpi;
+    //        break;
+    //    }
+    //}
 
+    int monitor = GetCurrentMonitor();
     int monitorCount = 0;
     GLFWmonitor **monitors = glfwGetMonitors(&monitorCount);
-
-    // Check window monitor
-    for (int i = 0; i < monitorCount; i++)
-    {
-        glfwGetMonitorContentScale(monitors[i], &xdpi, &ydpi);
-
-        int xpos, ypos, width, height;
-        glfwGetMonitorWorkarea(monitors[i], &xpos, &ypos, &width, &height);
-
-        if ((windowPos.x >= xpos) && (windowPos.x < xpos + width) &&
-            (windowPos.y >= ypos) && (windowPos.y < ypos + height))
-        {
-            scale.x = xdpi;
-            scale.y = ydpi;
-            break;
-        }
-    }
+    glfwGetMonitorContentScale(monitors[monitor], &scale.x, &scale.y);
 #endif
 
     return scale;
@@ -3875,23 +3926,27 @@ static bool InitGraphicsDevice(int width, int height)
         if (CORE.Window.position.x < 0) CORE.Window.position.x = 0;
         if (CORE.Window.position.y < 0) CORE.Window.position.y = 0;
 
-        // Obtain recommended CORE.Window.display.width/CORE.Window.display.height from a valid videomode for the monitor
-        int count = 0;
-        const GLFWvidmode *modes = glfwGetVideoModes(glfwGetPrimaryMonitor(), &count);
+        //// Obtain recommended CORE.Window.display.width/CORE.Window.display.height from a valid videomode for the monitor
+        //int count = 0;
+        //const GLFWvidmode *modes = glfwGetVideoModes(glfwGetPrimaryMonitor(), &count);
+        //
+        //// Get closest video mode to desired CORE.Window.screen.width/CORE.Window.screen.height
+        //for (int i = 0; i < count; i++)
+        //{
+        //    if ((unsigned int)modes[i].width >= CORE.Window.screen.width)
+        //    {
+        //        if ((unsigned int)modes[i].height >= CORE.Window.screen.height)
+        //        {
+        //            CORE.Window.display.width = modes[i].width;
+        //            CORE.Window.display.height = modes[i].height;
+        //            break;
+        //        }
+        //    }
+        //}
 
-        // Get closest video mode to desired CORE.Window.screen.width/CORE.Window.screen.height
-        for (int i = 0; i < count; i++)
-        {
-            if ((unsigned int)modes[i].width >= CORE.Window.screen.width)
-            {
-                if ((unsigned int)modes[i].height >= CORE.Window.screen.height)
-                {
-                    CORE.Window.display.width = modes[i].width;
-                    CORE.Window.display.height = modes[i].height;
-                    break;
-                }
-            }
-        }
+        const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+        CORE.Window.display.width = mode->width;
+        CORE.Window.display.height = mode->height;
 
 #if defined(PLATFORM_DESKTOP)
         // If we are windowed fullscreen, ensures that window does not minimize when focus is lost
@@ -3914,7 +3969,7 @@ static bool InitGraphicsDevice(int width, int height)
         // HighDPI monitors are properly considered in a following similar function: SetupViewport()
         SetupFramebuffer(CORE.Window.display.width, CORE.Window.display.height);
 
-        CORE.Window.handle = glfwCreateWindow(CORE.Window.display.width, CORE.Window.display.height, (CORE.Window.title != 0)? CORE.Window.title : " ", glfwGetPrimaryMonitor(), NULL);
+        CORE.Window.handle = glfwCreateWindow(CORE.Window.display.width, CORE.Window.display.height, (CORE.Window.title != 0)? CORE.Window.title : " ", monitor, NULL);
 
         // NOTE: Full-screen change, not working properly...
         //glfwSetWindowMonitor(CORE.Window.handle, glfwGetPrimaryMonitor(), 0, 0, CORE.Window.screen.width, CORE.Window.screen.height, GLFW_DONT_CARE);
@@ -5002,6 +5057,8 @@ static EM_BOOL EmscriptenResizeCallback(int eventType, const EmscriptenUiEvent *
 // NOTE: Window resizing not allowed by default
 static void WindowSizeCallback(GLFWwindow *window, int width, int height)
 {
+    //printf("WindowSizeCallback %d %d\n", width, height);
+
     // Reset viewport and projection matrix for new size
     SetupViewport(width, height);
 
@@ -5009,7 +5066,7 @@ static void WindowSizeCallback(GLFWwindow *window, int width, int height)
     CORE.Window.currentFbo.height = height;
     CORE.Window.resizedLastFrame = true;
 
-    if (IsWindowFullscreen()) return;
+    //if (IsWindowFullscreen()) return;
 
     // Set current screen size
 #if defined(__APPLE__)
@@ -5065,7 +5122,7 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
     else CORE.Input.Keyboard.currentKeyState[key] = 1;
 
     // Check if there is space available in the key queue
-    if ((CORE.Input.Keyboard.keyPressedQueueCount < MAX_KEY_PRESSED_QUEUE) && (action == GLFW_PRESS))
+    if ((CORE.Input.Keyboard.keyPressedQueueCount < MAX_KEY_PRESSED_QUEUE) && ((action == GLFW_PRESS) || (action == GLFW_REPEAT)))
     {
         // Add character to the queue
         CORE.Input.Keyboard.keyPressedQueue[CORE.Input.Keyboard.keyPressedQueueCount] = key;

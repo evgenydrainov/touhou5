@@ -148,6 +148,8 @@ namespace th
 			//if (IsKeyPressed(KEY_SPACE)) {
 			//	ToggleFullscreen();
 			//}
+
+			//std::cout << time << " active\n";
 		}
 	}
 
@@ -349,12 +351,10 @@ namespace th
 			up_surf.id = 0;
 		}
 		if (window_mode == last_mode) {
-			int rate = GetMonitorRefreshRate(m);
-
-			//_SetWindowMonitor(m, 0, 0, monitor_w, monitor_h, rate);
-
 			ClearWindowState(FLAG_VSYNC_HINT);
-			SetTargetFPS(rate * 2);
+			SetTargetFPS(GetMonitorRefreshRate(m) * 2);
+
+			SetWindowState(FLAG_FULLSCREEN_MODE);
 
 			up_surf = LoadStrippedRenderTexture(GAME_W * max_scale, GAME_H * max_scale);
 			SetTextureFilter(up_surf.texture, TEXTURE_FILTER_BILINEAR);
@@ -366,12 +366,12 @@ namespace th
 			int window_h = GAME_H * (window_mode + 1);
 			int window_x = GetMonitorPosition(m).x;
 			int window_y = GetMonitorPosition(m).y;
-			window_x += GetMonitorWidth(m) / 2;
-			window_y += GetMonitorHeight(m) / 2;
+			window_x += monitor_w / 2;
+			window_y += monitor_h / 2;
 			window_x -= window_w / 2;
 			window_y -= window_h / 2;
 
-			//_SetWindowMonitor(-1, window_x, window_y, window_w, window_h, -1);
+			SetWindowMonitor(-1, window_x, window_y, window_w, window_h, -1);
 
 			SetWindowState(FLAG_VSYNC_HINT);
 			SetTargetFPS(0);
