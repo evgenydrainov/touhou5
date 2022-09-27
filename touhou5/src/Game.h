@@ -1,16 +1,18 @@
 #pragma once
 
+#include "Sprite.h"
+
 #include "Scenes/TitleScene.h"
 #include "Scenes/ScriptSelectScene.h"
 #include "Scenes/ErrorScene.h"
 #include "Scenes/GameScene.h"
 #include "Scenes/OptionsScene.h"
 
-#include <raylibx.h>
+#include <raylib.h>
 #include <filesystem>
 #include <variant>
 
-#define GAME_VERSION "0.0.1"
+#define GAME_VERSION "0.0.001"
 #define TH_DEBUG 1
 
 namespace th
@@ -21,7 +23,8 @@ namespace th
 	enum Characters
 	{
 		CHARACTER_REIMU,
-		CHARACTER_MARISA
+		CHARACTER_MARISA,
+		CHARACTER_COUNT
 	};
 
 	enum Scenes
@@ -44,55 +47,62 @@ namespace th
 		int starting_bombs;
 		void (Stage::*shot_type)(float);
 		void (Stage::*bomb)();
+		Sprite idle_spr;
+		Sprite turn_spr;
 	};
 
 	struct Options
 	{
 		int starting_lives = 3;
-		float master_volume = 0.5f;
+		int master_volume = 5;
 	};
 
-	struct Game
+	class Game
 	{
-		Character characters[2] = {};
-		std::filesystem::path scripts_path = "Scripts";
-
-		// resources
-		RenderTexture2D game_surf = {};
-		RenderTexture2D up_surf = {};
-		Sound sndSelect = {};
-		Sound sndOk = {};
-		Sound sndCancel = {};
-
-		bool quit = false;
-		Options options = {};
-		float time = 0;
-		int window_mode = 0;
-		bool show_hitboxes = false;
-		bool god_mode = false;
-		bool debug_overlay = false;
-		bool frame_advance = false;
-		bool skip_frame = false;
-
-		std::filesystem::path script_path;
-		std::string error_msg;
-		int character_id = 0;
-
-		std::variant<std::monostate, TitleScene, ScriptSelectScene, ErrorScene, GameScene, OptionsScene> scene;
-		int next_scene = TITLE_SCENE;
+	public:
+		Game();
+		~Game();
 
 		Game(const Game&) = delete;
 		Game& operator=(const Game&) = delete;
 		Game(Game&&) = delete;
 		Game& operator=(Game&&) = delete;
 
-		Game();
-		~Game();
-
 		void run();
+
+		bool quit = false;
+		float time = 0.0f;
+		Character characters[CHARACTER_COUNT] = {};
+		int character_id = 0;
+		int next_scene = TITLE_SCENE;
+		Options options = {};
+		std::filesystem::path scripts_path = "Scripts";
+		std::filesystem::path script_path;
+		bool god_mode = false;
+		bool show_hitboxes = false;
+		int key_pressed = 0;
+		int char_pressed = 0;
+
+		Sound sndSelect = {};
+		Sound sndOk = {};
+		Sound sndCancel = {};
+		Font font = {};
+
+		std::string error_msg;
+
+	private:
 		void update(float delta);
 		void draw(float delta);
 		void set_window_mode(int mode);
-		void set_master_volume(float vol);
+
+		std::variant<std::monostate, TitleScene, ScriptSelectScene, ErrorScene, GameScene, OptionsScene> scene;
+
+		RenderTexture2D game_surf = {};
+		RenderTexture2D up_surf = {};
+
+		int window_mode = 0;
+		bool debug_overlay = false;
+		bool frame_advance = false;
+		bool skip_frame = false;
 	};
 }

@@ -32,27 +32,30 @@ namespace th
 			}
 			PlaySound(game.sndCancel);
 		}
-		menu_cursor += IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+		menu_cursor += (game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP);
 		menu_cursor = cpml::emod(menu_cursor, menu_labels.size());
-		if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)) {
+		if ((game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP)) {
 			PlaySound(game.sndSelect);
 		}
 		switch (menu_cursor) {
 			case 0: {
-				if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) {
-					game.options.starting_lives += IsKeyPressed(KEY_RIGHT) - IsKeyPressed(KEY_LEFT);
-					game.options.starting_lives = std::clamp(game.options.starting_lives, 1, 5);
-					PlaySound(game.sndSelect);
+				if ((game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT)) {
+					int lives = game.options.starting_lives + (game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT);
+					if (lives >= 1 && lives <= 5) {
+						game.options.starting_lives = lives;
+						PlaySound(game.sndSelect);
+					}
 				}
 				break;
 			}
 			case 1: {
-				if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) {
-					float vol = game.options.master_volume;
-					if (IsKeyPressed(KEY_LEFT))  vol -= 0.1f;
-					if (IsKeyPressed(KEY_RIGHT)) vol += 0.1f;
-					game.set_master_volume(vol);
-					PlaySound(game.sndSelect);
+				if ((game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT)) {
+					int vol = game.options.master_volume + (game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT);
+					if (vol >= 0 && vol <= 10) {
+						game.options.master_volume = vol;
+						SetMasterVolume(float(game.options.master_volume) / 10.0f);
+						PlaySound(game.sndSelect);
+					}
 				}
 				break;
 			}
@@ -106,7 +109,7 @@ namespace th
 			);
 			DrawRectangle(
 				menu_x + off, menu_y + master_slider_i * 20,
-				int(game.options.master_volume * 200.0f), 20,
+				game.options.master_volume * 200 / 10, 20,
 				WHITE
 			);
 		}

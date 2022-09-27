@@ -1,15 +1,22 @@
 ---@meta
 
+---@class array<T>: {[integer]: T}
 ---@class texture_handle
----@class music_handle
+---@class sprite_handle
 ---@class instance_id
----@class array<T>: {[number]: T}
----@class phase: {HP: number, Time: number, Type: integer, Script: fun()}
----@class boss: {Name: string, Texture: texture_handle, Phases: array<phase>, Healthbars: array<array<integer>>, Music: music_handle}
----@class enemy: {HP: number, Texture: texture_handle, Music: music_handle, Script: fun()}
+---@class phase: {HP: number, Time: number, Type: integer, Name: string?, Script: fun(id:instance_id):nil}
+---@class boss: {Name: string, Sprite: sprite_handle, Phases: array<phase>, Healthbars: array<integer>, Music: string?}
+---@class enemy: {HP: number, Texture: texture_handle, Script: fun(id:instance_id):nil}
+---@class stage: {Music: string?, Script: fun():nil}
 
 PHASE_NONSPELL  = 0
 PHASE_SPELLCARD = 1
+
+PLAY_AREA_W = 384
+PLAY_AREA_H = 448
+
+BOSS_STARTING_X = PLAY_AREA_W / 2
+BOSS_STARTING_Y = PLAY_AREA_H / 4
 
 ---@param x number
 ---@param y number
@@ -35,6 +42,13 @@ function CreateEnemy(x, y, desc) end
 ---@param fname string
 ---@return texture_handle
 function LoadTexture(fname) end
+
+---@param fname string
+---@param frame_count integer
+---@param anim_spd number
+---@param loop_frame integer
+---@return sprite_handle
+function LoadSprite(fname, frame_count, anim_spd, loop_frame) end
 
 --
 -- bullet
@@ -188,6 +202,14 @@ function BossGetRadius(id) end
 ---@return integer
 function BossGetPhase(id) end
 
+---@param id instance_id
+---@return sprite_handle
+function BossGetSpr(id) end
+
+---@param id instance_id
+---@return boolean
+function BossIsActive(id) end
+
 
 
 ---@param id instance_id
@@ -213,6 +235,10 @@ function BossSetAcc(id, acc) end
 ---@param id instance_id
 ---@param radius number
 function BossSetRadius(id, radius) end
+
+---@param id instance_id
+---@param sprite_id sprite_handle
+function BossSetSpr(id, sprite_id) end
 
 
 

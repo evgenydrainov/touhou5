@@ -206,6 +206,7 @@
     <ClInclude Include="src\Game.h" />
     <ClInclude Include="src\Scenes\GameScene.h" />
     <ClInclude Include="src\Scenes\OptionsScene.h" />
+    <ClInclude Include="src\Sprite.h" />
     <ClInclude Include="src\Stage\Objects.h" />
     <ClInclude Include="src\Scenes\TitleScene.h" />
     <ClInclude Include="src\sol\config.hpp" />

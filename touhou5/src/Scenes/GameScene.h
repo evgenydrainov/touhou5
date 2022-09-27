@@ -14,7 +14,10 @@ namespace th
 	constexpr float PLAYER_STARTING_X = float(PLAY_AREA_W) / 2.0f;
 	constexpr float PLAYER_STARTING_Y = 384.0f;
 
-	struct Game;
+	constexpr float BOSS_STARTING_X = float(PLAY_AREA_W) / 2.0f;
+	constexpr float BOSS_STARTING_Y = float(PLAY_AREA_H) / 4.0f;
+
+	class Game;
 
 	struct Stats
 	{
@@ -26,28 +29,42 @@ namespace th
 		int points;
 	};
 
-	struct GameScene
+	class GameScene
 	{
-		enum class State { Playing, Paused, Lost };
+	public:
+		GameScene(Game& game);
+		~GameScene();
 
-		Game& game;
+		GameScene(const GameScene&) = delete;
+		GameScene& operator=(const GameScene&) = delete;
+		GameScene(GameScene&&) = delete;
+		GameScene& operator=(GameScene&&) = delete;
 
-		Stats stats = {};
-		int hiscore = 0;
-		int continues = 0;
+		void update(float delta);
+		void draw(RenderTexture2D target, float delta);
 
-		State state = State::Playing;
+		void game_over();
+		void play_music(const std::string& fname);
+
 		std::optional<Stage> stage;
-		std::vector<std::string> menu_labels;
-		int menu_cursor = 0;
+		Stats stats = {};
 
-		// resources
-		RenderTexture2D play_area = {};
-		RenderTexture2D pause_surf = {};
-		Texture2D texReimu = {};
 		Texture2D texReimuCard = {};
+		Texture2D texReimuOrb = {};
+		Texture2D texReimuOrbShot = {};
 		Texture2D texBg = {};
 		Texture2D texHitbox = {};
+		Texture2D texSidebar = {};
+		Texture2D texUiLife = {};
+		Texture2D texUiBomb = {};
+		Texture2D texEnemyLabel = {};
+		Texture2D texPickupPower = {};
+		Texture2D texPickupPoint = {};
+		Texture2D texPickupBigPower = {};
+		Texture2D texPickupBomb = {};
+		Texture2D texPickupFullPower = {};
+		Texture2D texPickup1Up = {};
+		Texture2D texPickupScore = {};
 		Sound sndGraze = {};
 		Sound sndPause = {};
 		Sound sndReimuShoot = {};
@@ -56,25 +73,26 @@ namespace th
 		Sound sndEnemyShoot = {};
 		Sound sndPowerUp = {};
 		Sound snd1Up = {};
-		Music music = {};
 
-		GameScene(const GameScene&) = delete;
-		GameScene& operator=(const GameScene&) = delete;
-		GameScene(GameScene&&) = delete;
-		GameScene& operator=(GameScene&&) = delete;
-
-		GameScene(Game& game);
-		~GameScene();
-
-		void update(float delta);
-		void draw(RenderTexture2D target, float delta);
+	private:
+		enum class State { Playing, Paused, Lost };
 
 		void reset_stats();
 		void pause();
 		void resume();
-		void game_over();
 		void use_continue();
 		void quit_to_title_screen();
-		void play_music(const std::string& fname);
+
+		Game& game;
+
+		State state = State::Playing;
+		std::vector<std::string> menu_labels;
+		int menu_cursor = 0;
+		int hiscore = 0;
+		int continues = 0;
+
+		RenderTexture2D play_area = {};
+		RenderTexture2D pause_surf = {};
+		Music music = {};
 	};
 }

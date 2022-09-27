@@ -1,6 +1,8 @@
 ---@class thstdlib
 local th = {}
 
+
+
 ---@param x number
 ---@return number
 function th.dsin(x) return math.sin(math.rad(x)) end
@@ -79,6 +81,15 @@ function th.ceil_to(x, n) return math.ceil(x/n) * n end
 ---@return number
 function th.emod(a, b) return (a%b + b) % b end
 
+---@param a number
+---@param b number
+---@return number
+function th.random_range(a, b)
+	return a + (b - a) * math.random()
+end
+
+
+
 ---@param t integer
 function th.wait(t)
 	while t>0 do
@@ -86,6 +97,8 @@ function th.wait(t)
 		t=t-1
 	end
 end
+
+
 
 ---@param id instance_id
 ---@param spd number
@@ -128,5 +141,43 @@ end
 function th.BltDirToPlr(b)
 	return th.point_direction(BltGetX(b), BltGetY(b), PlrGetX(), PlrGetY())
 end
+
+---@param id instance_id
+---@param target_x number
+---@param target_y number
+---@param acc number
+function th.BossLaunchTowardsPoint(id, target_x, target_y, acc)
+	acc = math.abs(acc)
+	local x = BossGetX(id)
+	local y = BossGetY(id)
+	local dist = th.point_distance(x, y, target_x, target_y)
+	BossSetSpd(id, math.sqrt(dist * acc * 2))
+	BossSetAcc(id, -acc)
+	BossSetDir(id, th.point_direction(x, y, target_x, target_y))
+end
+
+---@param id instance_id
+function th.BossWander(id)
+	local dir = th.random_range(0, 360)
+	local target_x = BossGetX(id) + th.lengthdir_x(50, dir)
+	local target_y = BossGetY(id) + th.lengthdir_y(50, dir)
+	th.BossLaunchTowardsPoint(id, target_x, target_y, .01)
+end
+
+---@param id instance_id
+---@param target_x number
+---@param target_y number
+---@param acc number
+function th.BltLaunchTowardsPoint(id, target_x, target_y, acc)
+	acc = math.abs(acc)
+	local x = BltGetX(id)
+	local y = BltGetY(id)
+	local dist = th.point_distance(x, y, target_x, target_y)
+	BltSetSpd(id, math.sqrt(dist * acc * 2))
+	BltSetAcc(id, -acc)
+	BltSetDir(id, th.point_direction(x, y, target_x, target_y))
+end
+
+
 
 return th

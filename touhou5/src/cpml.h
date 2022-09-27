@@ -79,4 +79,11 @@ namespace cpml
 		}
 		return deg;
 	}
+
+	inline float angle_difference(float dest, float src)
+	{
+		float res = dest - src;
+		res = angle_wrap(res + 180.0f) - 180.0f;
+		return res;
+	}
 }

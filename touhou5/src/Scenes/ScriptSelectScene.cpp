@@ -29,9 +29,9 @@ namespace th
 			}
 			PlaySound(game.sndCancel);
 		}
-		menu_cursor += IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+		menu_cursor += (game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP);
 		menu_cursor = cpml::emod(menu_cursor, menu_labels.size());
-		if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)) {
+		if ((game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP)) {
 			PlaySound(game.sndSelect);
 		}
 		if (IsKeyPressed(KEY_Z)) {

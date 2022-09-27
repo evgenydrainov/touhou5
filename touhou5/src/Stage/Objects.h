@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Sprite.h"
 #include <sol/sol.hpp>
 
 namespace th
@@ -10,6 +11,8 @@ namespace th
 	{
 		float fire_timer;
 		int fire_queue;
+		float orb_x[2];
+		float orb_y[2];
 	};
 
 	struct Marisa {};
@@ -22,7 +25,7 @@ namespace th
 	};
 
 	constexpr float PLAYER_DEATH_TIME = 20.0f;
-	constexpr float PLAYER_RESPAWN_IFRAMES = 60.0f;
+	constexpr float PLAYER_RESPAWN_IFRAMES = 120.0f;
 
 	struct Player
 	{
@@ -34,6 +37,9 @@ namespace th
 		float hitbox_alpha;
 		float timer;
 		float iframes;
+		Sprite spr;
+		float frame_index;
+		float xscale;
 		char state;
 		bool is_focused;
 
@@ -46,7 +52,8 @@ namespace th
 
 	enum PlayerBullets
 	{
-		PLAYER_BULLET_REIMU_CARD
+		PLAYER_BULLET_REIMU_CARD,
+		PLAYER_BULLET_REIMU_ORB_SHOT
 	};
 
 	struct ReimuCard
@@ -100,17 +107,19 @@ namespace th
 		sol::coroutine co;
 	};
 
+	enum BossPhaseType
+	{
+		PHASE_NONSPELL,
+		PHASE_SPELLCARD
+	};
+
 	struct BossPhase
 	{
 		sol::coroutine script;
 		float time;
 		float hp;
-	};
-
-	enum BossStates
-	{
-		BOSS_STATE_WAITING,
-		BOSS_STATE_NORMAL
+		int type;
+		std::string name;
 	};
 
 	const float BOSS_WAIT_TIME = 60.0f;
@@ -124,7 +133,10 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		int texture_id;
+		//int texture_id;
+		int sprite_id;
+		float frame_index;
+		float xscale;
 		float hp;
 		sol::thread co_runner;
 		sol::coroutine co;
@@ -133,16 +145,18 @@ namespace th
 		std::vector<BossPhase> phases;
 		size_t phase_index;
 		float wait_timer;
-		char state;
+		char wait_flag;
 	};
 
 	enum Pickups
 	{
-		PICKUP_POINTS,
 		PICKUP_POWER,
-		PICKUP_BIGP,
-		PICKUP_SCORE,
-		PICKUP_MAX_POWER
+		PICKUP_POINT,
+		PICKUP_BIG_POWER,
+		PICKUP_BOMB,
+		PICKUP_FULL_POWER,
+		PICKUP_1UP,
+		PICKUP_SCORE
 	};
 
 	struct Pickup

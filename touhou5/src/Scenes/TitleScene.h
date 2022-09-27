@@ -6,23 +6,25 @@
 
 namespace th
 {
-	struct Game;
+	class Game;
 
-	struct TitleScene
+	class TitleScene
 	{
-		Game& game;
-
-		std::vector<std::string> menu_labels = {"Play", "Options", "Quit to Desktop"};
-		int menu_cursor = 0;
+	public:
+		TitleScene(Game& game);
 
 		TitleScene(const TitleScene&) = delete;
 		TitleScene& operator=(const TitleScene&) = delete;
 		TitleScene(TitleScene&&) = delete;
 		TitleScene& operator=(TitleScene&&) = delete;
 
-		TitleScene(Game& game);
-
 		void update(float delta);
 		void draw(RenderTexture target, float delta);
+
+	private:
+		Game& game;
+
+		std::vector<std::string> menu_labels = {"Play", "Options", "Quit to Desktop"};
+		int menu_cursor = 0;
 	};
 }

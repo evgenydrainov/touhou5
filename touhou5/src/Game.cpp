@@ -17,16 +17,6 @@ namespace th
 		std::cout << "[TOUHOU] USING " LUA_RELEASE "\n";
 		std::cout << "[TOUHOU] USING SOL " SOL_VERSION_STRING "\n";
 
-		characters[0].name				= "Reimu Hakurei";
-		characters[0].move_spd			= 3.75f;
-		characters[0].focus_spd			= 1.75f;
-		characters[0].radius			= 2.0f;
-		characters[0].graze_radius		= 16.0f;
-		characters[0].deathbomb_time	= 15.0f;
-		characters[0].starting_bombs	= 2;
-		characters[0].shot_type			= &Stage::reimu_shot_type;
-		characters[0].bomb				= &Stage::reimu_bomb;
-
 		{
 			inipp::Ini<char> ini;
 			std::ifstream f("options.ini");
@@ -36,19 +26,65 @@ namespace th
 		}
 
 		InitWindow(GAME_W, GAME_H, "th");
-		InitAudioDevice();
 		SetExitKey(0);
 		set_window_mode(0);
-		set_master_volume(options.master_volume);
+		InitAudioDevice();
+		SetMasterVolume(float(options.master_volume) / 10.0f);
 
-		game_surf = LoadStrippedRenderTexture(GAME_W, GAME_H);
-		sndSelect = LoadSound("se_select00.wav");
-		sndOk = LoadSound("se_ok00.wav");
-		sndCancel = LoadSound("se_cancel00.wav");
+		characters[0].name					= "Reimu Hakurei";
+		characters[0].move_spd				= 3.75f;
+		characters[0].focus_spd				= 1.6f;
+		characters[0].radius				= 2.0f;
+		characters[0].graze_radius			= 16.0f;
+		characters[0].deathbomb_time		= 15.0f;
+		characters[0].starting_bombs		= 2;
+		characters[0].shot_type				= &Stage::reimu_shot_type;
+		characters[0].bomb					= &Stage::reimu_bomb;
+		characters[0].idle_spr.tex			= LoadTexture("reimuidle.png");
+		characters[0].idle_spr.frame_count	= 6;
+		characters[0].idle_spr.anim_spd		= 0.15f;
+		characters[0].turn_spr.tex			= LoadTexture("reimuturn.png");
+		characters[0].turn_spr.frame_count	= 9;
+		characters[0].turn_spr.anim_spd		= 0.2f;
+		characters[0].turn_spr.loop_frame	= 4;
+
+		game_surf	= LoadStrippedRenderTexture(GAME_W, GAME_H);
+		sndSelect	= LoadSound("se_select00.wav");
+		sndOk		= LoadSound("se_ok00.wav");
+		sndCancel	= LoadSound("se_cancel00.wav");
+
+		SetSoundVolume(sndSelect, 0.75f);
+		SetSoundVolume(sndOk, 0.75f);
+		SetSoundVolume(sndCancel, 0.75f);
+
+		{
+			font.texture = LoadTexture("font.png");
+			font.baseSize = 15;
+			font.glyphCount = 98;
+			font.glyphs = (GlyphInfo*)malloc(font.glyphCount * sizeof(GlyphInfo));
+			if (font.glyphs) memset(font.glyphs, 0, font.glyphCount * sizeof(GlyphInfo));
+			font.recs = (Rectangle*)malloc(font.glyphCount * sizeof(Rectangle));
+			if (font.recs) memset(font.recs, 0, font.glyphCount * sizeof(Rectangle));
+			for (int i = 0; i < font.glyphCount; i++) {
+				int ch = 30 + i;
+				if (font.glyphs) font.glyphs[i].value = ch;
+				int ind = 14 + i;
+				int w = font.texture.width / 16;
+				int x = ind % w;
+				int y = ind / w;
+				if (font.recs) {
+					font.recs[i].x = float(x) * 16.0f;
+					font.recs[i].y = float(y) * 16.0f;
+					font.recs[i].width = 15.0f;
+					font.recs[i].height = 15.0f;
+				}
+			}
+		}
 	}
 
 	Game::~Game()
 	{
+		UnloadFont(font);
 		UnloadSound(sndCancel);
 		UnloadSound(sndOk);
 		UnloadSound(sndSelect);
@@ -56,6 +92,8 @@ namespace th
 			UnloadRenderTexture(up_surf);
 		}
 		UnloadRenderTexture(game_surf);
+		UnloadTexture(characters[0].idle_spr.tex);
+		UnloadTexture(characters[0].turn_spr.tex);
 		CloseAudioDevice();
 		CloseWindow();
 	}
@@ -71,9 +109,15 @@ namespace th
 
 			skip_frame = frame_advance;
 
+			key_pressed = GetKeyPressed();
+			char_pressed = GetCharPressed();
+
+			//std::cout << key_pressed << '\n';
+			//std::cout << char_pressed << '\n';
+
 #ifdef TH_DEBUG
 			show_hitboxes	^= IsKeyPressed(KEY_F1);
-			god_mode		^= IsKeyPressed(KEY_G);
+			god_mode		^= IsKeyPressed(KEY_I);
 			debug_overlay	^= IsKeyPressed(KEY_F3);
 			if (IsKeyPressed(KEY_F2)) {
 				next_scene = TITLE_SCENE;
@@ -188,7 +232,8 @@ namespace th
 		BeginTextureMode(game_surf);
 		{
 			const char* text = TextFormat("%dfps", GetFPS());
-			DrawText(text, GAME_W - MeasureText(text, 10), GAME_H - 10, 10, WHITE);
+			Vector2 s = MeasureTextEx(font, text, font.baseSize, 0);
+			DrawTextEx(font, text, {GAME_W - s.x, GAME_H - s.y}, font.baseSize, 0, WHITE);
 		}
 		EndTextureMode();
 
@@ -199,10 +244,10 @@ namespace th
 
 				DrawTexturePro(
 					game_surf.texture,
-					{0.0f, 0.0f, float(game_surf.texture.width), -float(game_surf.texture.height)},
-					{0.0f, 0.0f, float(up_surf.texture.width), float(up_surf.texture.height)},
-					{0.0f, 0.0f},
-					0.0f,
+					{0, 0, float(game_surf.texture.width), -float(game_surf.texture.height)},
+					{0, 0, float(up_surf.texture.width), float(up_surf.texture.height)},
+					{0, 0},
+					0,
 					WHITE
 				);
 			}
@@ -213,34 +258,38 @@ namespace th
 		{
 			ClearBackground(BLACK);
 
-			float screen_w = float(GetScreenWidth());
-			float screen_h = float(GetScreenHeight());
+			float screen_w = GetScreenWidth();
+			float screen_h = GetScreenHeight();
 			if (IsWindowFullscreen()) {
-				float up_surf_w = float(up_surf.texture.width);
-				float up_surf_h = float(up_surf.texture.height);
+				float up_surf_w = up_surf.texture.width;
+				float up_surf_h = up_surf.texture.height;
 				float scale = std::min(screen_w / up_surf_w, screen_h / up_surf_h);
 				float final_w = up_surf_w * scale;
 				float final_h = up_surf_h * scale;
 				DrawTexturePro(
 					up_surf.texture,
-					{0.0f, 0.0f, up_surf_w, -up_surf_h},
+					{0, 0, up_surf_w, -up_surf_h},
 					{screen_w / 2.0f, screen_h / 2.0f, final_w, final_h},
 					{final_w / 2.0f, final_h / 2.0f},
-					0.0f,
+					0,
 					WHITE
 				);
 			} else {
 				DrawTexturePro(
 					game_surf.texture,
-					{0.0f, 0.0f, float(game_surf.texture.width), -float(game_surf.texture.height)},
-					{0.0f, 0.0f, screen_w, screen_h},
-					{0.0f, 0.0f},
-					0.0f,
+					{0, 0, float(game_surf.texture.width), -float(game_surf.texture.height)},
+					{0, 0, screen_w, screen_h},
+					{0, 0},
+					0,
 					WHITE
 				);
 			}
 
 			if (debug_overlay) {
+				Font f = GetFontDefault();
+				float size = 20;
+				float spacing = 2;
+
 				const char* text = TextFormat(
 					"monitor %d\n"
 					"fullscreen %d\n"
@@ -257,24 +306,28 @@ namespace th
 					show_hitboxes,
 					god_mode
 				);
-				DrawText(text, 0, 0, 20, RED);
+				int h = MeasureTextEx(f, text, size, spacing).y;
+				DrawTextEx(f, text, {0, 0}, size, spacing, RAYWHITE);
 
 				if (scene.index() == GAME_SCENE) {
+					const GameScene& s = std::get<GAME_SCENE>(scene);
 					const char* text = TextFormat(
 						"bullets %d\n"
 						"player bullets %d\n"
 						"enemies %d\n"
 						"pickups %d\n"
 						"coroutine calls %d\n"
-						"physics calls %d",
-						(int)std::get<GAME_SCENE>(scene).stage->bullets.size(),
-						(int)std::get<GAME_SCENE>(scene).stage->player_bullets.size(),
-						(int)std::get<GAME_SCENE>(scene).stage->enemies.size(),
-						(int)std::get<GAME_SCENE>(scene).stage->pickups.size(),
-						std::get<GAME_SCENE>(scene).stage->coroutine_calls,
-						std::get<GAME_SCENE>(scene).stage->physics_calls
+						"physics calls %d\n"
+						"player dps %f",
+						int(s.stage->bullets.size()),
+						int(s.stage->player_bullets.size()),
+						int(s.stage->enemies.size()),
+						int(s.stage->pickups.size()),
+						s.stage->coroutine_calls,
+						s.stage->physics_calls,
+						s.stage->player_dps
 					);
-					DrawText(text, 0, 250, 20, RED);
+					DrawTextEx(f, text, {0, h + 30.0f}, size, spacing, RAYWHITE);
 				}
 			}
 		}
@@ -296,10 +349,12 @@ namespace th
 			up_surf.id = 0;
 		}
 		if (window_mode == last_mode) {
-			_SetWindowMonitor(m, 0, 0, monitor_w, monitor_h, -1);
+			int rate = GetMonitorRefreshRate(m);
+
+			_SetWindowMonitor(m, 0, 0, monitor_w, monitor_h, rate);
 
 			ClearWindowState(FLAG_VSYNC_HINT);
-			SetTargetFPS(GetMonitorRefreshRate(m) * 2);
+			SetTargetFPS(rate * 2);
 
 			up_surf = LoadStrippedRenderTexture(GAME_W * max_scale, GAME_H * max_scale);
 			SetTextureFilter(up_surf.texture, TEXTURE_FILTER_BILINEAR);
@@ -309,8 +364,8 @@ namespace th
 		} else {
 			int window_w = GAME_W * (window_mode + 1);
 			int window_h = GAME_H * (window_mode + 1);
-			int window_x = int(GetMonitorPosition(m).x);
-			int window_y = int(GetMonitorPosition(m).y);
+			int window_x = GetMonitorPosition(m).x;
+			int window_y = GetMonitorPosition(m).y;
 			window_x += GetMonitorWidth(m) / 2;
 			window_y += GetMonitorHeight(m) / 2;
 			window_x -= window_w / 2;
@@ -323,11 +378,5 @@ namespace th
 
 			EnableCursor();
 		}
-	}
-
-	void Game::set_master_volume(float vol)
-	{
-		options.master_volume = std::clamp(vol, 0.0f, 1.0f);
-		SetMasterVolume(options.master_volume);
 	}
 }

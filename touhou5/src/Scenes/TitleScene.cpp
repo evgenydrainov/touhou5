@@ -17,9 +17,9 @@ namespace th
 				PlaySound(game.sndCancel);
 			}
 		}
-		menu_cursor += IsKeyPressed(KEY_DOWN) - IsKeyPressed(KEY_UP);
+		menu_cursor += (game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP);
 		menu_cursor = cpml::emod(menu_cursor, menu_labels.size());
-		if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_UP)) {
+		if ((game.key_pressed == KEY_DOWN) - (game.key_pressed == KEY_UP)) {
 			PlaySound(game.sndSelect);
 		}
 		if (IsKeyPressed(KEY_Z)) {
@@ -51,19 +51,25 @@ namespace th
 			}
 
 			DrawText(
-				"F4 - Fullscreen\n\n"
-				"F1 - Show Hitboxes\n"
-				"F2 - Restart\n"
-				"F3 - Debug Overlay\n"
-				"F5 - Advance Single Frame\n"
-				"F6 - Resume Game Normally\n"
-				"F - Fast Forward\n"
-				"G - God Mode\n\n"
-				"S - Skip Boss Phase\n"
-				"L - Get 8 Lives\n"
-				"B - Get 8 Bombs\n"
-				"P - Get Max Power",
-				10, 10,
+				"F4 - Fullscreen\n"
+				"\n"
+				"Anywhere\n"
+				"  F1 - Show Hitboxes\n"
+				"  F2 - Restart\n"
+				"  F3 - Debug Overlay\n"
+				"  F5 - Advance Single Frame\n"
+				"  F6 - Resume Game Normally\n"
+				"  F - Fast Forward\n"
+				"  I - Invincibility\n"
+				"\n"
+				"In-Game\n"
+				"  S - Skip Boss Phase\n"
+				"  [Shift/Alt +] L - Get/Lose Lives\n"
+				"  [Shift/Alt +] B - Get/Lose Bombs\n"
+				"  [Shift/Ctrl/Alt +] P - Get/Lose Power\n"
+				"  [Shift/Ctrl/Alt +] . - Get/Lose Points\n"
+				"  [Shift/Ctrl/Alt +] G - Get/Lose Graze",
+				0, 0,
 				10, RED
 			);
 		}
