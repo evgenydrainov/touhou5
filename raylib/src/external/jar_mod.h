@@ -1562,7 +1562,7 @@ mulong jar_mod_max_samples(jar_mod_context_t * ctx)
     mulong len;
     mulong lastcount = ctx->loopcount;
     
-    //while(ctx->loopcount <= lastcount)
+    while(ctx->loopcount <= lastcount)
         jar_mod_fillbuffer(ctx, buff, 1, 0);
     
     len = ctx->samplenb;

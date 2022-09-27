@@ -351,7 +351,7 @@ namespace th
 		if (window_mode == last_mode) {
 			int rate = GetMonitorRefreshRate(m);
 
-			_SetWindowMonitor(m, 0, 0, monitor_w, monitor_h, rate);
+			//_SetWindowMonitor(m, 0, 0, monitor_w, monitor_h, rate);
 
 			ClearWindowState(FLAG_VSYNC_HINT);
 			SetTargetFPS(rate * 2);
@@ -371,7 +371,7 @@ namespace th
 			window_x -= window_w / 2;
 			window_y -= window_h / 2;
 
-			_SetWindowMonitor(-1, window_x, window_y, window_w, window_h, -1);
+			//_SetWindowMonitor(-1, window_x, window_y, window_w, window_h, -1);
 
 			SetWindowState(FLAG_VSYNC_HINT);
 			SetTargetFPS(0);
