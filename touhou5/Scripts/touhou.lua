@@ -1,4 +1,4 @@
----@class thstdlib
+---@class touhoulib
 local th = {}
 
 
@@ -79,22 +79,30 @@ function th.ceil_to(x, n) return math.ceil(x/n) * n end
 ---@param a number
 ---@param b number
 ---@return number
-function th.emod(a, b) return (a%b + b) % b end
+function th.wrap(a, b) return (a%b + b) % b end
 
 ---@param a number
 ---@param b number
 ---@return number
 function th.random_range(a, b)
-	return a + (b - a) * math.random()
+	return a + (b-a) * Random()
+end
+
+---@param ... any
+---@return any
+function th.choose(...)
+	local arg = {...}
+	local i = math.floor(Random() * #arg) + 1
+	return arg[i]
 end
 
 
 
 ---@param t integer
 function th.wait(t)
-	while t>0 do
+	while t > 0 do
 		coroutine.yield()
-		t=t-1
+		t = t - 1
 	end
 end
 
@@ -103,7 +111,7 @@ end
 ---@param id instance_id
 ---@param spd number
 ---@param acc number
----@param texture texture_handle
+---@param texture texture_handle | -1
 ---@param radius number
 ---@param rotate boolean
 ---@return instance_id
@@ -112,6 +120,33 @@ function th.BossShootAtPlr(id, spd, acc, texture, radius, rotate)
 	local y = BossGetY(id)
 	local dir = th.point_direction(x, y, PlrGetX(), PlrGetY())
 	return Shoot(x, y, spd, dir, acc, texture, radius, rotate)
+end
+
+---@param id instance_id
+---@param spd number
+---@param acc number
+---@param texture texture_handle | -1
+---@param length number
+---@param thickness number
+---@return instance_id
+function th.BossShootLazerAtPlr(id, spd, acc, texture, length, thickness)
+	local x = BossGetX(id)
+	local y = BossGetY(id)
+	local dir = th.point_direction(x, y, PlrGetX(), PlrGetY())
+	return ShootLazer(x, y, spd, dir, acc, texture, length, thickness)
+end
+
+---@param id instance_id
+---@param spd number
+---@param acc number
+---@param texture texture_handle | -1
+---@param radius number
+---@return instance_id
+function th.BossShootRectAtPlr(id, spd, acc, texture, radius)
+	local x = BossGetX(id)
+	local y = BossGetY(id)
+	local dir = th.point_direction(x, y, PlrGetX(), PlrGetY())
+	return ShootRect(x, y, spd, dir, acc, texture, radius)
 end
 
 ---@param count integer
@@ -123,7 +158,7 @@ function th.ShootRadial(count, dir_diff, lambda)
 	for i = 0, count-1 do
 		local f = -(count - 1) / 2 + i
 		local res = lambda()
-		if type(res)=='table' then
+		if type(res)=="table" then
 			for i = 1, #res do
 				blts[#blts+1] = res[i]
 				BltSetDir(blts[#blts], BltGetDir(blts[#blts]) + dir_diff * f)

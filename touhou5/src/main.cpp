@@ -2,8 +2,15 @@
 
 int main()
 {
-	th::Game game;
-	game.run();
+	for (;;) {
+		th::Game game;
+		game.run();
+
+		if (!game.restart) {
+			break;
+		}
+	}
+
 	return 0;
 }
 

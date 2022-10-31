@@ -4,10 +4,9 @@
 ---@class texture_handle
 ---@class sprite_handle
 ---@class instance_id
----@class phase: {HP: number, Time: number, Type: integer, Name: string?, Script: fun(id:instance_id):nil}
+---@class phase: {HP: number, Time: number, Type: integer, Name: string?, Script: fun(id: instance_id): nil}
 ---@class boss: {Name: string, Sprite: sprite_handle, Phases: array<phase>, Healthbars: array<integer>, Music: string?}
----@class enemy: {HP: number, Texture: texture_handle, Script: fun(id:instance_id):nil}
----@class stage: {Music: string?, Script: fun():nil}
+---@class stage: {Music: string?, Script: fun(): nil}
 
 PHASE_NONSPELL  = 0
 PHASE_SPELLCARD = 1
@@ -16,28 +15,78 @@ PLAY_AREA_W = 384
 PLAY_AREA_H = 448
 
 BOSS_STARTING_X = PLAY_AREA_W / 2
-BOSS_STARTING_Y = PLAY_AREA_H / 4
+BOSS_STARTING_Y = 96
 
 ---@param x number
 ---@param y number
 ---@param spd number
 ---@param dir number
 ---@param acc number
----@param texture texture_handle
+---@param texture texture_handle | -1
 ---@param radius number
 ---@param rotate boolean
 ---@return instance_id
 function Shoot(x, y, spd, dir, acc, texture, radius, rotate) end
 
+---@param x number
+---@param y number
+---@param spd number
+---@param dir number
+---@param acc number
+---@param texture texture_handle | -1
+---@param length number
+---@param thickness number
+---@return instance_id
+function ShootLazer(x, y, spd, dir, acc, texture, length, thickness) end
+
+---@param x number
+---@param y number
+---@param spd number
+---@param dir number
+---@param acc number
+---@param texture texture_handle | -1
+---@param radius number
+---@return instance_id
+function ShootRect(x, y, spd, dir, acc, texture, radius) end
+
 ---@param desc boss
 ---@return instance_id
 function CreateBoss(desc) end
 
+---@param desc boss
+---@return instance_id
+function CreateMidboss(desc) end
+
 ---@param x number
 ---@param y number
----@param desc enemy
+---@param radius number
+---@param desc boss
+---@param midboss boolean
 ---@return instance_id
-function CreateEnemy(x, y, desc) end
+function CreateBossEx(x, y, radius, desc, midboss) end
+
+---@param x number
+---@param y number
+---@param spd number
+---@param dir number
+---@param acc number
+---@param hp number
+---@param sprite sprite_handle | -1
+---@param script function?
+---@return instance_id
+function CreateEnemy(x, y, spd, dir, acc, hp, sprite, script) end
+
+---@param x number
+---@param y number
+---@param spd number
+---@param dir number
+---@param acc number
+---@param radius number
+---@param hp number
+---@param sprite sprite_handle | -1
+---@param script function?
+---@return instance_id
+function CreateEnemyEx(x, y, spd, dir, acc, radius, hp, sprite, script) end
 
 ---@param fname string
 ---@return texture_handle
@@ -49,6 +98,8 @@ function LoadTexture(fname) end
 ---@param loop_frame integer
 ---@return sprite_handle
 function LoadSprite(fname, frame_count, anim_spd, loop_frame) end
+
+function Random() end
 
 --
 -- bullet
@@ -82,6 +133,10 @@ function BltGetRadius(id) end
 ---@return number
 function BltGetLifetime(id) end
 
+---@param id instance_id
+---@return texture_handle
+function BltGetTex(id) end
+
 
 
 ---@param id instance_id
@@ -107,6 +162,10 @@ function BltSetAcc(id, acc) end
 ---@param id instance_id
 ---@param radius number
 function BltSetRadius(id, radius) end
+
+---@param id instance_id
+---@param texture texture_handle
+function BltSetTex(id, texture) end
 
 --
 -- enemy
@@ -135,6 +194,8 @@ function EnmGetAcc(id) end
 ---@param id instance_id
 ---@return number
 function EnmGetRadius(id) end
+
+
 
 ---@param id instance_id
 ---@param x number
@@ -237,8 +298,8 @@ function BossSetAcc(id, acc) end
 function BossSetRadius(id, radius) end
 
 ---@param id instance_id
----@param sprite_id sprite_handle
-function BossSetSpr(id, sprite_id) end
+---@param sprite sprite_handle
+function BossSetSpr(id, sprite) end
 
 
 
@@ -253,3 +314,13 @@ function EnmExists(id) end
 ---@param id instance_id
 ---@return boolean
 function BossExists(id) end
+
+
+
+function BGCamSetPos(x, y, z) end
+function BGCamSetTarget(x, y, z) end
+function BGFogSetOrigin(x, y, z) end
+function BGFogSetColor(r, g, b, a) end
+function BGFogSetNear(near) end
+function BGFogSetFar(far) end
+function BGFogEnable(enable) end

@@ -23,30 +23,26 @@ namespace th
 			ini.parse(f);
 			inipp::get_value(ini.sections["Game"], "Starting Lives", options.starting_lives);
 			inipp::get_value(ini.sections["Audio"], "Master Volume", options.master_volume);
+			inipp::get_value(ini.sections["Audio"], "Music Volume", options.music_volume);
 		}
 
-		InitWindow(GAME_W, GAME_H, "th");
+		InitWindow(GAME_W, GAME_H, "touhou5");
 		SetExitKey(0);
 		set_window_mode(0);
 		InitAudioDevice();
 		SetMasterVolume(float(options.master_volume) / 10.0f);
 
-		characters[0].name					= "Reimu Hakurei";
-		characters[0].move_spd				= 3.75f;
-		characters[0].focus_spd				= 1.6f;
-		characters[0].radius				= 2.0f;
-		characters[0].graze_radius			= 16.0f;
-		characters[0].deathbomb_time		= 15.0f;
-		characters[0].starting_bombs		= 2;
-		characters[0].shot_type				= &Stage::reimu_shot_type;
-		characters[0].bomb					= &Stage::reimu_bomb;
-		characters[0].idle_spr.tex			= LoadTexture("reimuidle.png");
-		characters[0].idle_spr.frame_count	= 6;
-		characters[0].idle_spr.anim_spd		= 0.15f;
-		characters[0].turn_spr.tex			= LoadTexture("reimuturn.png");
-		characters[0].turn_spr.frame_count	= 9;
-		characters[0].turn_spr.anim_spd		= 0.2f;
-		characters[0].turn_spr.loop_frame	= 4;
+		characters[0].name				= "Reimu Hakurei";
+		characters[0].move_spd			= 3.75f;
+		characters[0].focus_spd			= 1.6f;
+		characters[0].radius			= 2.0f;
+		characters[0].graze_radius		= 16.0f;
+		characters[0].deathbomb_time	= 15.0f;
+		characters[0].starting_bombs	= 2;
+		characters[0].shot_type			= &Stage::reimu_shot_type;
+		characters[0].bomb				= &Stage::reimu_bomb;
+		characters[0].idle_spr			= LoadSprite("reimuidle.png", 6, 0.15f, 0);
+		characters[0].turn_spr			= LoadSprite("reimuturn.png", 9, 0.2f, 4);
 
 		game_surf	= LoadStrippedRenderTexture(GAME_W, GAME_H);
 		sndSelect	= LoadSound("se_select00.wav");
@@ -57,33 +53,32 @@ namespace th
 		SetSoundVolume(sndOk, 0.75f);
 		SetSoundVolume(sndCancel, 0.75f);
 
-		{
-			font.texture = LoadTexture("font.png");
-			font.baseSize = 15;
-			font.glyphCount = 98;
-			font.glyphs = (GlyphInfo*)malloc(font.glyphCount * sizeof(GlyphInfo));
-			if (font.glyphs) memset(font.glyphs, 0, font.glyphCount * sizeof(GlyphInfo));
-			font.recs = (Rectangle*)malloc(font.glyphCount * sizeof(Rectangle));
-			if (font.recs) memset(font.recs, 0, font.glyphCount * sizeof(Rectangle));
-			for (int i = 0; i < font.glyphCount; i++) {
-				int ch = 30 + i;
-				if (font.glyphs) font.glyphs[i].value = ch;
-				int ind = 14 + i;
-				int w = font.texture.width / 16;
-				int x = ind % w;
-				int y = ind / w;
-				if (font.recs) {
-					font.recs[i].x = float(x) * 16.0f;
-					font.recs[i].y = float(y) * 16.0f;
-					font.recs[i].width = 15.0f;
-					font.recs[i].height = 15.0f;
-				}
-			}
+		font.texture = LoadTexture("font.png");
+		font.baseSize = 15;
+		font.glyphCount = 98;
+		font.glyphs = (GlyphInfo*)malloc(font.glyphCount * sizeof(GlyphInfo));
+		memset(font.glyphs, 0, font.glyphCount * sizeof(GlyphInfo));
+		font.recs = (Rectangle*)malloc(font.glyphCount * sizeof(Rectangle));
+		memset(font.recs, 0, font.glyphCount * sizeof(Rectangle));
+		for (int i = 0; i < font.glyphCount; i++) {
+			int ch = 30 + i;
+			font.glyphs[i].value = ch;
+			int ind = 14 + i;
+			int w = font.texture.width / 16;
+			int x = ind % w;
+			int y = ind / w;
+			font.recs[i].x = float(x) * 16.0f;
+			font.recs[i].y = float(y) * 16.0f;
+			font.recs[i].width = 15.0f;
+			font.recs[i].height = 15.0f;
 		}
+
+		font2 = LoadFontEx("Cirno.ttf", 20, nullptr, 0);
 	}
 
 	Game::~Game()
 	{
+		UnloadFont(font2);
 		UnloadFont(font);
 		UnloadSound(sndCancel);
 		UnloadSound(sndOk);
@@ -92,10 +87,10 @@ namespace th
 			UnloadRenderTexture(up_surf);
 		}
 		UnloadRenderTexture(game_surf);
-		UnloadTexture(characters[0].idle_spr.tex);
-		UnloadTexture(characters[0].turn_spr.tex);
+		UnloadSprite(characters[0].idle_spr);
+		UnloadSprite(characters[0].turn_spr);
 		CloseAudioDevice();
-		CloseWindow();
+		rCloseWindow();
 	}
 
 	void Game::run()
@@ -107,7 +102,7 @@ namespace th
 				set_window_mode(window_mode + 1);
 			}
 
-			skip_frame = frame_advance;
+			bool skip_frame = frame_advance;
 
 			key_pressed = GetKeyPressed();
 			char_pressed = GetCharPressed();
@@ -116,16 +111,17 @@ namespace th
 			//std::cout << char_pressed << '\n';
 
 #ifdef TH_DEBUG
+			if (IsKeyPressed(KEY_F2)) {
+				restart = true;
+				quit = true;
+			}
 			show_hitboxes	^= IsKeyPressed(KEY_F1);
 			god_mode		^= IsKeyPressed(KEY_I);
 			debug_overlay	^= IsKeyPressed(KEY_F3);
-			if (IsKeyPressed(KEY_F2)) {
-				next_scene = TITLE_SCENE;
-			}
 			if (IsKeyDown(KEY_F)) {
 				delta *= 5.0f;
 			}
-			if (IsKeyPressed(KEY_F5)) {
+			if (key_pressed == KEY_F5) {
 				frame_advance = true;
 				skip_frame = false;
 			}
@@ -150,6 +146,7 @@ namespace th
 			//}
 
 			//std::cout << time << " active\n";
+			//std::cout << GetTime() << '\n';
 		}
 	}
 
@@ -309,6 +306,7 @@ namespace th
 					god_mode
 				);
 				int h = MeasureTextEx(f, text, size, spacing).y;
+				DrawTextEx(f, text, {1, 1}, size, spacing, BLACK);
 				DrawTextEx(f, text, {0, 0}, size, spacing, RAYWHITE);
 
 				if (scene.index() == GAME_SCENE) {
@@ -320,15 +318,20 @@ namespace th
 						"pickups %d\n"
 						"coroutine calls %d\n"
 						"physics calls %d\n"
-						"player dps %f",
+						"player dps %f\n"
+						"boss wait timer %f\n"
+						"boss wait flag %d\n",
 						int(s.stage->bullets.size()),
 						int(s.stage->player_bullets.size()),
 						int(s.stage->enemies.size()),
 						int(s.stage->pickups.size()),
 						s.stage->coroutine_calls,
 						s.stage->physics_calls,
-						s.stage->player_dps
+						s.stage->player_dps,
+						s.stage->boss ? s.stage->boss->wait_timer : -1.0f,
+						s.stage->boss ? int(s.stage->boss->wait_flag) : -1
 					);
+					DrawTextEx(f, text, {1, h + 31.0f}, size, spacing, BLACK);
 					DrawTextEx(f, text, {0, h + 30.0f}, size, spacing, RAYWHITE);
 				}
 			}

@@ -907,7 +907,7 @@ extern "C" {            // Prevents name mangling of functions
 // Window-related functions
 RLAPI void InitWindow(int width, int height, const char *title);  // Initialize window and OpenGL context
 RLAPI bool WindowShouldClose(void);                               // Check if KEY_ESCAPE pressed or Close icon pressed
-RLAPI void CloseWindow(void);                                     // Close window and unload OpenGL context
+RLAPI void rCloseWindow(void);                                    // Close window and unload OpenGL context
 RLAPI bool IsWindowReady(void);                                   // Check if window has been initialized successfully
 RLAPI bool IsWindowFullscreen(void);                              // Check if window is currently fullscreen
 RLAPI bool IsWindowHidden(void);                                  // Check if window is currently hidden (only PLATFORM_DESKTOP)
@@ -951,10 +951,10 @@ RLAPI const char *GetClipboardText(void);                         // Get clipboa
 // To avoid that behaviour and control frame processes manually, enable in config.h: SUPPORT_CUSTOM_FRAME_CONTROL
 RLAPI void SwapScreenBuffer(void);                                // Swap back buffer with front buffer (screen drawing)
 RLAPI void PollInputEvents(void);                                 // Register all input events
-RLAPI void WaitTime(float ms);                                    // Wait for some milliseconds (halt program execution)
+RLAPI void WaitTime(double seconds);                              // Wait for some time (stop program execution)
 
 // Cursor-related functions
-RLAPI void ShowCursor(void);                                      // Shows cursor
+RLAPI void rShowCursor(void);                                     // Shows cursor
 RLAPI void HideCursor(void);                                      // Hides cursor
 RLAPI bool IsCursorHidden(void);                                  // Check if cursor is not visible
 RLAPI void EnableCursor(void);                                    // Enables cursor (unlock cursor)

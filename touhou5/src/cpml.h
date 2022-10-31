@@ -86,4 +86,21 @@ namespace cpml
 		res = angle_wrap(res + 180.0f) - 180.0f;
 		return res;
 	}
+
+	inline bool circle_vs_rotated_rect(float circle_x, float circle_y, float circle_radius, float rect_center_x, float rect_center_y, float rect_w, float rect_h, float rect_dir)
+	{
+		float dx = circle_x - rect_center_x;
+		float dy = circle_y - rect_center_y;
+
+		float x_rotated = rect_center_x - (dx * dsin(rect_dir)) - (dy * dcos(rect_dir));
+		float y_rotated = rect_center_y + (dx * dcos(rect_dir)) - (dy * dsin(rect_dir));
+
+		float x_closest = std::clamp(x_rotated, rect_center_x - rect_w / 2.0f, rect_center_x + rect_w / 2.0f);
+		float y_closest = std::clamp(y_rotated, rect_center_y - rect_h / 2.0f, rect_center_y + rect_h / 2.0f);
+
+		dx = x_closest - x_rotated;
+		dy = y_closest - y_rotated;
+
+		return (dx * dx + dy * dy) < (circle_radius * circle_radius);
+	}
 }

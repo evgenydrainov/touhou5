@@ -19,7 +19,7 @@ namespace th
 		TitleScene& operator=(TitleScene&&) = delete;
 
 		void update(float delta);
-		void draw(RenderTexture target, float delta);
+		void draw(RenderTexture2D target, float delta);
 
 	private:
 		Game& game;

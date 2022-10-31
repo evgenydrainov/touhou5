@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Sprite.h"
-
 #include "Scenes/TitleScene.h"
 #include "Scenes/ScriptSelectScene.h"
 #include "Scenes/ErrorScene.h"
@@ -12,11 +10,16 @@
 #include <filesystem>
 #include <variant>
 
-#define GAME_VERSION "0.0.001"
+#define GAME_VERSION "2"
 #define TH_DEBUG 1
 
 namespace th
 {
+	constexpr size_t operator""_sz(unsigned long long n)
+	{
+		return static_cast<size_t>(n);
+	}
+
 	constexpr int GAME_W = 640;
 	constexpr int GAME_H = 480;
 
@@ -54,7 +57,8 @@ namespace th
 	struct Options
 	{
 		int starting_lives = 3;
-		int master_volume = 5;
+		int master_volume = 10;
+		int music_volume = 10;
 	};
 
 	class Game
@@ -71,6 +75,7 @@ namespace th
 		void run();
 
 		bool quit = false;
+		bool restart = false;
 		float time = 0.0f;
 		Character characters[CHARACTER_COUNT] = {};
 		int character_id = 0;
@@ -87,6 +92,7 @@ namespace th
 		Sound sndOk = {};
 		Sound sndCancel = {};
 		Font font = {};
+		Font font2 = {};
 
 		std::string error_msg;
 
@@ -103,6 +109,5 @@ namespace th
 		int window_mode = 0;
 		bool debug_overlay = false;
 		bool frame_advance = false;
-		bool skip_frame = false;
 	};
 }

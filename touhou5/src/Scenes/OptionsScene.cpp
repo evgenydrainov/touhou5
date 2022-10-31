@@ -11,13 +11,19 @@
 namespace th
 {
 	OptionsScene::OptionsScene(Game& game) : game(game)
-	{}
+	{
+		menu_labels.emplace_back("Starting Lives");
+		menu_labels.emplace_back("Master Volume");
+		menu_labels.emplace_back("Music Volume");
+		menu_labels.emplace_back("Back");
+	}
 
 	OptionsScene::~OptionsScene()
 	{
 		inipp::Ini<char> ini;
 		ini.sections["Game"]["Starting Lives"] = fmt::format("{}", game.options.starting_lives);
 		ini.sections["Audio"]["Master Volume"] = fmt::format("{}", game.options.master_volume);
+		ini.sections["Audio"]["Music Volume"]  = fmt::format("{}", game.options.music_volume);
 		std::ofstream f("options.ini");
 		ini.generate(f);
 	}
@@ -60,6 +66,16 @@ namespace th
 				break;
 			}
 			case 2: {
+				if ((game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT)) {
+					int vol = game.options.music_volume + (game.key_pressed == KEY_RIGHT) - (game.key_pressed == KEY_LEFT);
+					if (vol >= 0 && vol <= 10) {
+						game.options.music_volume = vol;
+						PlaySound(game.sndSelect);
+					}
+				}
+				break;
+			}
+			case 3: {
 				if (IsKeyPressed(KEY_Z)) {
 					game.next_scene = TITLE_SCENE;
 					PlaySound(game.sndCancel);
@@ -88,30 +104,48 @@ namespace th
 
 			int off = 200;
 
-			int lives_i = 0;
-			for (int i = 0; i < 5; i++) {
-				int lives = 1 + i;
-				char text[2];
-				text[0] = '0' + lives;
-				text[1] = 0;
-				DrawText(
-					text,
-					menu_x + off + 40 * i, menu_y + lives_i * 20,
-					20, (lives == game.options.starting_lives) ? WHITE : DARKGRAY
+			{
+				int lives_i = 0;
+				for (int i = 0; i < 5; i++) {
+					int lives = 1 + i;
+					char text[2];
+					text[0] = '0' + lives;
+					text[1] = 0;
+					DrawText(
+						text,
+						menu_x + off + 40 * i, menu_y + lives_i * 20,
+						20, (lives == game.options.starting_lives) ? WHITE : DARKGRAY
+					);
+				}
+			}
+
+			{
+				int master_slider_i = 1;
+				DrawRectangle(
+					menu_x + off, menu_y + master_slider_i * 20,
+					200, 16,
+					DARKGRAY
+				);
+				DrawRectangle(
+					menu_x + off, menu_y + master_slider_i * 20,
+					game.options.master_volume * 200 / 10, 16,
+					WHITE
 				);
 			}
 
-			int master_slider_i = 1;
-			DrawRectangle(
-				menu_x + off, menu_y + master_slider_i * 20,
-				200, 20,
-				DARKGRAY
-			);
-			DrawRectangle(
-				menu_x + off, menu_y + master_slider_i * 20,
-				game.options.master_volume * 200 / 10, 20,
-				WHITE
-			);
+			{
+				int music_slider_i = 2;
+				DrawRectangle(
+					menu_x + off, menu_y + music_slider_i * 20,
+					200, 16,
+					DARKGRAY
+				);
+				DrawRectangle(
+					menu_x + off, menu_y + music_slider_i * 20,
+					game.options.music_volume * 200 / 10, 16,
+					WHITE
+				);
+			}
 		}
 		EndTextureMode();
 	}

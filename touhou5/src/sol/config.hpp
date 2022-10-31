@@ -19,5 +19,5 @@ the build system, or the command line options of your compiler.
 */
 
 #define SOL_PRINT_ERRORS 0
-
 #define SOL_ALL_SAFETIES_ON 1
+#define SOL_EXCEPTIONS_SAFE_PROPAGATION 1

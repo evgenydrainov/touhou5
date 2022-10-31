@@ -695,6 +695,8 @@ void InitWindow(int width, int height, const char *title)
 {
     TRACELOG(LOG_INFO, "Initializing raylib %s", RAYLIB_VERSION);
 
+    memset(&CORE, 0, sizeof CORE);
+
     if ((title != NULL) && (title[0] != 0)) CORE.Window.title = title;
 
     // Initialize required global values different than 0
@@ -853,7 +855,7 @@ void InitWindow(int width, int height, const char *title)
 }
 
 // Close window and unload OpenGL context
-void CloseWindow(void)
+void rCloseWindow(void)
 {
 #if defined(SUPPORT_GIF_RECORDING)
     if (gifRecording)
@@ -875,9 +877,9 @@ void CloseWindow(void)
     glfwTerminate();
 #endif
 
-#if defined(_WIN32) && defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
-    timeEndPeriod(1);           // Restore time period
-#endif
+//#if defined(_WIN32) && defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
+//    timeEndPeriod(1);           // Restore time period
+//#endif
 
 #if defined(PLATFORM_ANDROID) || defined(PLATFORM_RPI)
     // Close surface, context and display
@@ -1891,7 +1893,7 @@ void SetClipboardText(const char *text)
 }
 
 // Show mouse cursor
-void ShowCursor(void)
+void rShowCursor(void)
 {
 #if defined(PLATFORM_DESKTOP)
     glfwSetInputMode(CORE.Window.handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -2055,7 +2057,7 @@ void EndDrawing(void)
     // Wait for some milliseconds...
     if (CORE.Time.frame < CORE.Time.target)
     {
-        WaitTime((float)(CORE.Time.target - CORE.Time.frame)*1000.0f);
+        WaitTime(CORE.Time.target - CORE.Time.frame);
 
         CORE.Time.current = GetTime();
         double waitTime = CORE.Time.current - CORE.Time.previous;
@@ -3977,6 +3979,9 @@ static bool InitGraphicsDevice(int width, int height)
     else
     {
         // No-fullscreen window creation
+        
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
         CORE.Window.handle = glfwCreateWindow(CORE.Window.screen.width, CORE.Window.screen.height, (CORE.Window.title != 0)? CORE.Window.title : " ", NULL, NULL);
 
         if (CORE.Window.handle)
@@ -3990,6 +3995,8 @@ static bool InitGraphicsDevice(int width, int height)
             if (windowPosY < 0) windowPosY = 0;
 
             glfwSetWindowPos(CORE.Window.handle, windowPosX, windowPosY);
+
+            glfwShowWindow(CORE.Window.handle);
 #endif
             CORE.Window.render.width = CORE.Window.screen.width;
             CORE.Window.render.height = CORE.Window.screen.height;
@@ -4619,9 +4626,9 @@ static void InitTimer(void)
 // However, it can also reduce overall system performance, because the thread scheduler switches tasks more often.
 // High resolutions can also prevent the CPU power management system from entering power-saving modes.
 // Setting a higher resolution does not improve the accuracy of the high-resolution performance counter.
-#if defined(_WIN32) && defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
-    timeBeginPeriod(1);                 // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
-#endif
+//#if defined(_WIN32) && defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
+//    timeBeginPeriod(1);                 // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
+//#endif
 
 #if defined(PLATFORM_ANDROID) || defined(PLATFORM_RPI) || defined(PLATFORM_DRM)
     struct timespec now = { 0 };
@@ -4636,49 +4643,52 @@ static void InitTimer(void)
     CORE.Time.previous = GetTime();     // Get time as double
 }
 
-// Wait for some milliseconds (stop program execution)
+// Wait for some time (stop program execution)
 // NOTE: Sleep() granularity could be around 10 ms, it means, Sleep() could
 // take longer than expected... for that reason we use the busy wait loop
 // Ref: http://stackoverflow.com/questions/43057578/c-programming-win32-games-sleep-taking-longer-than-expected
 // Ref: http://www.geisswerks.com/ryan/FAQS/timing.html --> All about timming on Win32!
-void WaitTime(float ms)
+void WaitTime(double seconds)
 {
-#if defined(SUPPORT_BUSY_WAIT_LOOP)
-    double previousTime = GetTime();
-    double currentTime = 0.0;
+#if defined(SUPPORT_BUSY_WAIT_LOOP) || defined(SUPPORT_PARTIALBUSY_WAIT_LOOP)
+    double destinationTime = GetTime() + seconds;
+#endif
 
-    // Busy wait loop
-    while ((currentTime - previousTime) < ms/1000.0f) currentTime = GetTime();
+#if defined(SUPPORT_BUSY_WAIT_LOOP)
+    while (GetTime() < destinationTime) { }
 #else
     #if defined(SUPPORT_PARTIALBUSY_WAIT_LOOP)
-        double busyWait = ms*0.05;     // NOTE: We are using a busy wait of 5% of the time
-        ms -= (float)busyWait;
+        double sleepSeconds = seconds - seconds*0.05;  // NOTE: We reserve a percentage of the time for busy waiting
+    #else
+        double sleepSeconds = seconds;
     #endif
 
     // System halt functions
     #if defined(_WIN32)
-        Sleep((unsigned int)ms);
+        #if defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
+            timeBeginPeriod(1);                 // Setup high-resolution timer to 1ms (granularity of 1-2 ms)
+        #endif
+        Sleep((unsigned long)(sleepSeconds*1000.0));
+        #if defined(SUPPORT_WINMM_HIGHRES_TIMER) && !defined(SUPPORT_BUSY_WAIT_LOOP)
+            timeEndPeriod(1);           // Restore time period
+        #endif
     #endif
-    #if defined(__linux__) || defined(__FreeBSD__) || defined(__EMSCRIPTEN__)
+    #if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__EMSCRIPTEN__)
         struct timespec req = { 0 };
-        time_t sec = (int)(ms/1000.0f);
-        ms -= (sec*1000);
+        time_t sec = sleepSeconds;
+        long nsec = (sleepSeconds - sec)*1000000000L;
         req.tv_sec = sec;
-        req.tv_nsec = ms*1000000L;
+        req.tv_nsec = nsec;
 
         // NOTE: Use nanosleep() on Unix platforms... usleep() it's deprecated.
         while (nanosleep(&req, &req) == -1) continue;
     #endif
     #if defined(__APPLE__)
-        usleep(ms*1000.0f);
+        usleep(sleepSeconds*1000000.0);
     #endif
 
     #if defined(SUPPORT_PARTIALBUSY_WAIT_LOOP)
-        double previousTime = GetTime();
-        double currentTime = 0.0;
-
-        // Partial busy wait loop (only a fraction of the total wait time)
-        while ((currentTime - previousTime) < busyWait/1000.0f) currentTime = GetTime();
+        while (GetTime() < destinationTime) { }
     #endif
 #endif
 }
@@ -6277,7 +6287,7 @@ static void *EventThread(void *arg)
 #endif
         }
 
-        WaitTime(5);    // Sleep for 5ms to avoid hogging CPU time
+        WaitTime(0.005);    // Sleep for 5ms to avoid hogging CPU time
     }
 
     close(worker->fd);
@@ -6365,7 +6375,7 @@ static void *GamepadThread(void *arg)
                     }
                 }
             }
-            else WaitTime(1);    // Sleep for 1 ms to avoid hogging CPU time
+            else WaitTime(0.001);    // Sleep for 1 ms to avoid hogging CPU time
         }
     }
 

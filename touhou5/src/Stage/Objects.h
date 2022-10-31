@@ -77,6 +77,14 @@ namespace th
 		};
 	};
 
+	enum Projectiles
+	{
+		PROJECTILE_BULLET,
+		PROJECTILE_LAZER,
+		PROJECTILE_RECT
+	};
+
+	// rename to projectile
 	struct Bullet
 	{
 		instance_id id;
@@ -85,11 +93,26 @@ namespace th
 		float spd;
 		float dir;
 		float acc;
-		float radius;
+
+		union
+		{
+			struct
+			{
+				float radius;
+				bool rotate;
+			};
+
+			struct
+			{
+				float length;
+				float thickness;
+			};
+		};
+
 		int texture_id;
 		float lifetime;
-		bool rotate;
 		bool grazed;
+		char type;
 	};
 
 	struct Enemy
@@ -101,13 +124,14 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		int texture_id;
+		int sprite_id;
+		float frame_index;
 		float hp;
-		sol::thread co_runner;
-		sol::coroutine co;
+		std::unique_ptr<sol::thread> co_runner;
+		std::unique_ptr<sol::coroutine> co;
 	};
 
-	enum BossPhaseType
+	enum BossPhases
 	{
 		PHASE_NONSPELL,
 		PHASE_SPELLCARD
@@ -118,11 +142,11 @@ namespace th
 		sol::coroutine script;
 		float time;
 		float hp;
-		int type;
+		char type;
 		std::string name;
 	};
 
-	const float BOSS_WAIT_TIME = 60.0f;
+	constexpr float BOSS_WAIT_TIME = 100.0f;
 
 	struct Boss
 	{
@@ -133,7 +157,6 @@ namespace th
 		float dir;
 		float acc;
 		float radius;
-		//int texture_id;
 		int sprite_id;
 		float frame_index;
 		float xscale;
@@ -146,6 +169,7 @@ namespace th
 		size_t phase_index;
 		float wait_timer;
 		char wait_flag;
+		bool midboss;
 	};
 
 	enum Pickups

@@ -183,6 +183,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Sprite.cpp" />
     <ClCompile Include="src\Scenes\ErrorScene.cpp" />
     <ClCompile Include="src\Game.cpp" />
     <ClCompile Include="src\Scenes\GameScene.cpp" />

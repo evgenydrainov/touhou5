@@ -25,7 +25,7 @@ namespace th
 	private:
 		Game& game;
 
-		std::vector<std::string> menu_labels = {"Starting Lives", "Master Volume", "Back"};
+		std::vector<std::string> menu_labels;
 		int menu_cursor = 0;
 	};
 }

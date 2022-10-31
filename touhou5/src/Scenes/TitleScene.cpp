@@ -36,7 +36,7 @@ namespace th
 		}
 	}
 
-	void TitleScene::draw(RenderTexture target, float delta)
+	void TitleScene::draw(RenderTexture2D target, float delta)
 	{
 		BeginTextureMode(target);
 		{
@@ -64,11 +64,12 @@ namespace th
 				"\n"
 				"In-Game\n"
 				"  S - Skip Boss Phase\n"
-				"  [Shift/Alt +] L - Get/Lose Lives\n"
-				"  [Shift/Alt +] B - Get/Lose Bombs\n"
-				"  [Shift/Ctrl/Alt +] P - Get/Lose Power\n"
-				"  [Shift/Ctrl/Alt +] . - Get/Lose Points\n"
-				"  [Shift/Ctrl/Alt +] G - Get/Lose Graze",
+				"  [Shift/Alt] + L - Get/Lose Lives\n"
+				"  [Shift/Alt] + B - Get/Lose Bombs\n"
+				"  [Shift/Alt] + P - Get/Lose Power\n"
+				"  [Shift/Alt] + . - Get/Lose Points\n"
+				"  [Shift/Alt] + G - Get/Lose Graze\n"
+				"  R - Restart",
 				0, 0,
 				10, RED
 			);

@@ -15,7 +15,7 @@ namespace th
 	constexpr float PLAYER_STARTING_Y = 384.0f;
 
 	constexpr float BOSS_STARTING_X = float(PLAY_AREA_W) / 2.0f;
-	constexpr float BOSS_STARTING_Y = float(PLAY_AREA_H) / 4.0f;
+	constexpr float BOSS_STARTING_Y = 96.0f;
 
 	class Game;
 
@@ -43,11 +43,19 @@ namespace th
 		void update(float delta);
 		void draw(RenderTexture2D target, float delta);
 
+		void get_power(int power);
+		void get_lives(int lives);
+		void get_bombs(int bombs);
+		void get_points(int points);
+		void get_score(int score);
+
 		void game_over();
+		void win();
 		void play_music(const std::string& fname);
 
 		std::optional<Stage> stage;
 		Stats stats = {};
+		int hiscore = 0;
 
 		Texture2D texReimuCard = {};
 		Texture2D texReimuOrb = {};
@@ -73,9 +81,20 @@ namespace th
 		Sound sndEnemyShoot = {};
 		Sound sndPowerUp = {};
 		Sound snd1Up = {};
+		Sound sndPickup = {};
+		Sound sndLazer = {};
+		Sound sndEnemyDie = {};
+		Sound sndBossDie = {};
+		Sound sndSpellCard = {};
 
 	private:
-		enum class State { Playing, Paused, Lost };
+		enum class State
+		{
+			Playing,
+			Paused,
+			Lost,
+			Won
+		};
 
 		void reset_stats();
 		void pause();
@@ -88,7 +107,8 @@ namespace th
 		State state = State::Playing;
 		std::vector<std::string> menu_labels;
 		int menu_cursor = 0;
-		int hiscore = 0;
+		float menu_anim = 1.0f;
+		bool menu_exiting = false;
 		int continues = 0;
 
 		RenderTexture2D play_area = {};
