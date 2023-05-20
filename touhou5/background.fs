@@ -23,7 +23,7 @@ void main()
 
 	finalColor = texelColor * colDiffuse;
 
-	if (u_fogEnabled) {
+	if (u_fogEnabled == 1) {
 		float dist = length(worldPos - u_fogOrigin);
 		float fraction = clamp((dist - u_fogNear) / (u_fogFar - u_fogNear), 0., 1.);
 
